@@ -15,3 +15,8 @@ A: Playing video games - all kinds, like Steam games, Valorant, Hok, and listeni
 
 Hi, I'm Samantha, a junior at MIT majoring in Computer Science (Course 6-3)! I'm interested in the software side of CS, and enjoy watching shows and playing games in my free time. 
 
+**Q: What's your favorite show?
+
+## Heyang Ni
+
+Hi! I'm Heyang or Felicity, a junior at MIT in 6-3. I'm interested in algorithms, ML, and making softwares.
