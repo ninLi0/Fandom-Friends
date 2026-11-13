@@ -1,0 +1,6 @@
+## Solution Sketch
+We introduce Tagging concept to help users make bio cards easily. Fandom Friends keeps a database of existing tags. User enters a set of tags of fandoms they're in, as well as desired activities like "drawing" or "going to cons", with autofill and auto detection of synonymous tags. User can star certain tags to be emphasized. Fandom Friends generates a bio card with the given tags, with live preview. User can customize the bio card's colors and font styles. User can add their social media links to their bio card.
+
+User saves their bio card, can save a png, or click "Open to New Friends" and the bio card will display publicly.
+
+Users meet each other by MutualMaching or Messaging. Users can browse other users' latest bio cards by selecting or filtering out a subset of tags. After finding a user they're interested in, they can either click "Interested" or direct message if they're brave. Two users will receive a match notification if they both clicked "Interested" for each other.
