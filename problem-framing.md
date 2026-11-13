@@ -23,11 +23,11 @@ A page like this does two jobs. It lets a reader judge in seconds whether the tw
 
 ## Bad Situations
 
-- **Difficulty presenting interests.** A fan wants to meet people who share their favorite series, characters, or activities, but struggles to decide what to include in an introduction and bio, and how to organize it. The introduction remains unfinished and only communicates only broad interests, making it harder for others to recognize a specific reason to connect.
+- **Difficulty presenting interests.** Alice wants to meet people with shared fandoms and interests, but struggles to decide what to include in an introduction and bio, and how to organize it. She builds the bio from scratch, repeatedly adjusts text box and image positions to avoid overlapping or somewhere too empty. She eventually finds the process tedious and gives up. Her introduction remains unfinished with only a line "anime fan", giving potential friends little indication of specific shared interests.
 
-- **Hesitation to initiate contact.** A fan discovers someone with overlapping interests but cannot tell whether they want new mutuals. They worry that messaging would be unwanted or awkward and leave without reaching out. A potential connection never gets explored.
+- **Hesitation to initiate contact.** A fan discovers someone with overlapping interests but cannot tell whether they want new mutuals. They worry that messaging would be unwanted or awkward and leave without reaching out. Bob finds Charlie on Twitter and discovered they share a lot of favorite characters, follows Charlie, but Charlie thought Bob was only another follower and ignores him. Bob interprets the silence as Charlie wasn't interested in him, and didn't reach out even though he still wants to connect.
 
-- **Shared fandom, different interests.** Two people enjoy the same series but are looking for different interactions. One wants to exchange sketches while the other wants to discuss theories. They both realize that finding someone in the same fandom does not necessarily help them find the specific companionship they want.
+- **Shared fandom, different interests.** Two people enjoy the same series but are looking for different interactions. Dan adds Eve as friends through a fandom server, but after messaging each other, they found that Dan wants to exchange sketches while Eve wants to discuss theories, neither is interested in what each other does.
 
 ## Evidence
 
