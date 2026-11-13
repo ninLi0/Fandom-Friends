@@ -25,13 +25,13 @@ A page like this does two jobs. It lets a reader judge in seconds whether the tw
 
 - **Difficulty presenting interests.** Alice wants to meet people with shared fandoms and interests, but struggles to decide what to include in an introduction and bio, and how to organize it. She builds the bio from scratch, repeatedly adjusts text box and image positions to avoid overlapping or somewhere too empty. She eventually finds the process tedious and gives up. Her introduction remains unfinished with only a line "anime fan", giving potential friends little indication of specific shared interests.
 
-- **Hesitation to initiate contact.** A fan discovers someone with overlapping interests but cannot tell whether they want new mutuals. They worry that messaging would be unwanted or awkward and leave without reaching out. Bob finds Charlie on Twitter and discovered they share a lot of favorite characters, follows Charlie, but Charlie thought Bob was only another follower and ignores him. Bob interprets the silence as Charlie wasn't interested in him, and didn't reach out even though he still wants to connect.
+- **Hesitation to initiate contact.** They worry that messaging would be unwanted or awkward and leave without reaching out. Bob finds Charlie on Twitter and discovered they share a lot of favorite characters, follows Charlie, but Charlie thought Bob was only another follower and ignores him. Bob interprets the silence as Charlie wasn't interested in him, and didn't reach out even though he still wants to connect. Bob later finds Frank on Twitter who also shares a lot of fandoms, unsure whether Frank wants new mutuals, and didn't reach out. 
 
-- **Shared fandom, different interests.** Two people enjoy the same series but are looking for different interactions. Dan adds Eve as friends through a fandom server, but after messaging each other, they found that Dan wants to exchange sketches while Eve wants to discuss theories, neither is interested in what each other does.
+- **Shared fandom, different interests.** Dan adds Eve as friends through a fandom server, but after messaging each other, they found that Dan wants to exchange sketches while Eve wants to discuss theories, neither is interested in what each other does.
 
 ## Evidence
 
-- **Difficulty creating introductions.** In a discussion regarding StrawPage, a user states, “I wanted a strawpage to help introduce me as a person but idk what to put.” This demonstrates that people are unsure how to present themselves.[Strawpage discussion](https://www.reddit.com/r/Strawpage/comments/1rti04z/what_kinds_of_things_do_you_include_here_on/)
+- **Difficulty creating introductions.** In a discussion regarding StrawPage, a user states, “I wanted a strawpage to help introduce me as a person but idk what to put.” This is an instance that people are unsure how to present themselves.[Strawpage discussion](https://www.reddit.com/r/Strawpage/comments/1rti04z/what_kinds_of_things_do_you_include_here_on/)
 
 - **Fear of an unwelcome approach discourages contact.** In an AO3 discussion about befriending authors, the poster states, “I'm terrified they'll think I'm weird if I just ask.” This shows that there is hesitation to approach someone despite wanting a connection. [AO3 discussion](https://www.reddit.com/r/AO3/comments/1ro0thb/have_yall_ever_wanted_to_befriend_an_author_or/)
 
@@ -115,15 +115,17 @@ A chatbot can write a bio if asked, and [Linktree](https://linktr.ee/help/articl
 | AniList | Pick favorites | No | No |
 | AI writing assistants | Writes from a prompt | No | No |
 
-None of these does all three. Page builders hold a fan's interests, but only as text nobody can search. Matching apps can search, but only by series title. So a fan writes about themselves, looks for people by hand through hashtags and servers, then messages a stranger and hopes it goes well.
+None of these does all three. Page builders hold a fan's interests, but only as text nobody can search. Matching apps can search, but only by series title. So a fan writes about themselves, looks for people by hand through hashtags and servers, then messages a stranger and hopes it goes well. 
 
-We did not find anything that lets a fan choose specific interests like "Fern and Stark" or "sketch swaps" once, puts them on the introduction, and lets other fans search by them.
+Fandom Friends can automatically turning specific interests into an expressive introduction that also supports discovery. We did not find anything that lets a fan choose specific interests like "Fern and Stark" or "sketch swaps" once, puts them on the introduction, and lets other fans search by them.
 
 ## Solution Sketch
 Fandom Friends helps users conveniently create introduction pages and find people who are open to new friends.
 
 1. Describing oneself by **Tagging**
-We introduce Tagging concept to help users make bio cards easily. Fandom Friends keeps a database of existing tags. User enters a set of tags of fandoms they're in, as well as desired activities like "drawing" or "going to cons", with autofill and auto detection of synonymous tags. Synonymous tags will be displayed as the text user entered, but will be recorded as the actual key in the database. Users can create a new tag, with exact key determined by the agent using search functions, or the user, when the tag is rare and can't be searched. User can star certain tags to be emphasized. Fandom Friends generates a bio card with the given tags, with live preview. User can customize the bio card's colors and font styles, as well as upload or web search for pictures for the starred tags. User can add their social media links to their bio card.
+We introduce Tagging concept to help users make bio cards easily. Fandom Friends keeps a database of existing tags. User enters a set of tags of fandoms they're in, as well as desired activities like "drawing" or "going to cons", with autofill and auto detection of synonymous tags. Synonymous tags will be displayed as the text user entered, but will be recorded as the actual key in the database. Users can create a new tag, with exact key determined by the agent using search functions, or the user, when the tag is rare and can't be searched. User can star certain tags to be emphasized. 
+
+ Fandom Friends generates a bio card with the given tags, with live preview. User can customize the bio card's colors and font styles, as well as upload or web search for pictures for the starred tags. User can add their social media links to their bio card.
 
 User saves their bio card, can save a png to local files, or click "Open to New Friends" and the bio card will display publicly. Users can save multiple intro cards and select one as their public introduction.
 
@@ -138,7 +140,7 @@ Passing on someone removes that person from the user’s search results and “F
 
    **Observation:** Public bio cards and social links help users find each other, but may expose fandom interests to audiences they did not intend.
 
-   **Design response:** We would let users choose which tags and links appear publicly and preview that view before enabling "Open to New Friends." Users could share additional details themselves, trading some discoverability for privacy.
+   **Design response:** Users choose what to include in their public card and preview it before enabling “Open to New Friends.” The card’s tags and selected social links become publicly discoverable, while other saved cards remain unpublished. Users can search for additional interests without adding them to their public introduction.
 
 2. **Dimension: Stakeholders, Prompt: Indirect Stakeholders**
 
