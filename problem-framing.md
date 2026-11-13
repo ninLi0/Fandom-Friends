@@ -21,6 +21,22 @@ A page like this does two jobs. It lets a reader judge in seconds whether the tw
 
 **From page to friendship.** A finished page still has to be found, and it sits behind a link that only someone already looking at the author's account will click. Then one of the two has to make the first move, by following, replying, or sending a direct message, without knowing whether it is welcome. In the interview study, one shy author explained why they usually hold back: "maybe I'm bothering them."
 
+## Bad Situations
+
+- **Difficulty presenting interests.** A fan wants to meet people who share their favorite series, characters, or activities, but struggles to decide what to include in an introduction and bio, and how to organize it. The introduction remains unfinished and only communicates only broad interests, making it harder for others to recognize a specific reason to connect.
+
+- **Hesitation to initiate contact.** A fan discovers someone with overlapping interests but cannot tell whether they want new mutuals. They worry that messaging would be unwanted or awkward and leave without reaching out. A potential connection never gets explored.
+
+- **Shared fandom, different interests.** Two people enjoy the same series but are looking for different interactions. One wants to exchange sketches while the other wants to discuss theories. They both realize that finding someone in the same fandom does not necessarily help them find the specific companionship they want.
+
+## Evidence
+
+- **Difficulty creating introductions.** In a discussion regarding StrawPage, a user states, “I wanted a strawpage to help introduce me as a person but idk what to put.” This demonstrates that people are unsure how to present themselves.[Strawpage discussion](https://www.reddit.com/r/Strawpage/comments/1rti04z/what_kinds_of_things_do_you_include_here_on/)
+
+- **Fear of an unwelcome approach discourages contact.** In an AO3 discussion about befriending authors, the poster states, “I'm terrified they'll think I'm weird if I just ask.” This shows that there is hesitation to approach someone despite wanting a connection. [AO3 discussion](https://www.reddit.com/r/AO3/comments/1ro0thb/have_yall_ever_wanted_to_befriend_an_author_or/)
+
+- **Finding compatible fandom friends can be emotionally significant.** A fanfiction writer reports having nobody to discuss their projects with, feeling that their writing differs from the rest of the fandom's interests, and experiencing anxiety over messaging people. This shows that hesitating to initiate can leave people without the companionship they want. [FanFiction discussion](https://www.reddit.com/r/FanFiction/comments/13tdxwi/)
+
 ## Workarounds and Comparables
 
 Fans already have ways to meet each other, but they need a different one for each step: writing an introduction, finding people, and reaching out.
