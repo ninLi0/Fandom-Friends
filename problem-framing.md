@@ -127,3 +127,35 @@ User saves their bio card, can save a png, or click "Open to New Friends" and th
 Users meet each other by MutualMatching or Messaging. Users can find potential friends by searching for specific tags or browsing a “For You” page ranked by similarity in their interests and priorities. They can privately select “Interested” or “Pass” on another user. They can also direct message if they're brave. Two users receive a match notification when both select “Interested.”
 
 Passing on someone removes that person from the user’s search results and “For You” page. Users can review their “Passed users” list and undo a pass at any time, making that person eligible to appear again.
+
+## Ethical Analysis
+
+1. **Dimension: Values, Prompt: Value Tensions**
+
+   **Observation:** Public bio cards and social links help users find each other, but may expose fandom interests to audiences they did not intend.
+
+   **Design response:** We would let users choose which tags and links appear publicly and preview that view before enabling "Open to New Friends." Users could share additional details themselves, trading some discoverability for privacy.
+
+2. **Dimension: Stakeholders, Prompt: Indirect Stakeholders**
+
+   **Observation:** Linking someone else's social account on a bio card could make a nonuser appear responsible for that profile.
+
+   **Design response:** We would label unverified links and let people report impersonation without creating an account. Reviewing reports before removing cards would protect affected people while limiting abuse of the reporting system.
+
+3. **Dimension: Stakeholders, Prompt: Variation in Human Ability**
+
+   **Observation:** Users can export their bio cards as PNGs. When shared as images, the written fandom and activity labels may be inaccessible to people using screen readers.
+
+   **Design response:** We would provide copyable text with each PNG export, so users can include an accessible description when sharing. This would also help people outside the app read introductions using translation tools.
+
+4. **Dimension: Time, Prompt: Choosing Not to Use**
+
+   **Observation:** Users may stop seeking friends, but their public cards could still appear in searches and bring new direct messages.
+
+   **Design response:** We would make "Open to New Friends" reversible, pausing discovery and unsolicited messages when disabled. Account deletion would remove hosted cards. We would explain that PNGs and screenshots shared elsewhere may remain.
+
+5. **Dimension: Pervasiveness, Prompt: Widespread Use**
+
+   **Observation:** If fandom communities come to rely on the "For You" page for introductions, users may adopt popular tags to appear in more matches, gradually making niche interests less visible.
+
+   **Design response:** We would offer a discovery option that prioritizes shared activity tags over fandom overlap, while respecting starred priorities. This would trade some similarity for broader connections.
