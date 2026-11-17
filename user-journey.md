@@ -1,4 +1,4 @@
-Alice wants to meet other fans who share common interest and also enjoy exchanging sketches. She registers an account on Fandom Friends and logs in to create an introduction.
+Alice wants to meet people with common fandoms and interest. She registers an account on Fandom Friends and logs in to create an introduction.
 
 In the bio creator, Alice adds fandom tags for *Frieren* and *Haikyu!!*, a pairing tag for *Fern × Stark*, and Interest tags for **Sketch swaps** and **Episode discussions**. As she types, autocomplete suggests existing tags. Alternate names are aliases of the same tag. For example, typing “Delicious in Dungeon” suggests its official name *Dungeon Meshi*, so fans searching for either name can find one another. Selected tags are displayed as grouped under Fandoms, Characters and Pairings, and Interests. Each tag has a star button to mark or unmark a current favorite, and a remove button to delete it from the bio.
 
