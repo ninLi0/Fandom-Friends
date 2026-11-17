@@ -340,29 +340,3 @@ then Requesting.respond (each person, newest listed first)
 ```
 
 Note: a bio must have every searched tag, and a tag under a searched one counts, so a bio with "Fern/Stark" matches "Frieren". With no tag chosen, everyone who is open to new friends appears.
-
-## Design summary
-
-**How the concepts work together.** A fan picks tags once, and the same tags do three jobs.
-
-- **An introduction that gets finished** (the unfinished Carrd and the "anime fan" bio). Tagging and Grouping let a fan pick specific tags from a series' list. Templating gives the bio a finished look with nothing to position. A fan can keep several bios, and Publishing gives the one they display an address.
-- **Knowing who welcomes contact** (fans who hesitate to message first). Publishing's listed level is "Open to New Friends". Only people who chose it appear in search, so everyone a fan finds there has said they want new friends.
-- **Telling a sketch-swapper from a theory fan** (same fandom, different activities). Activities are tags like any other, so a card shows them and a search can ask for them. Search expands through Synonymizing and Grouping, so a fan is found whichever name or broader tag the searcher picks.
-
-**Ethics concerns from F2.**
-
-| Concern | Where the design answers it |
-|---|---|
-| 1. Public cards expose interests | Only the bio a person chooses to display is public, and their other saved bios stay private. Open to New Friends is a separate choice, and only then does the bio appear in search. |
-| 2. Linking someone else's account | A card has no links to outside accounts in the alpha, so it cannot point at someone else's account. Every card page links to the team's contact address for reporting a problem. |
-| 3. A PNG hides text from screen readers | A published card is a web page with real text, which screen readers and translation tools can read. This design has no image export. |
-| 4. Choosing to stop | Turning off Open to New Friends takes a person out of search and keeps their link. Unpublishing takes the card down. Nobody can message anyone inside the app. |
-| 5. Popular tags crowd out niche ones | Search returns only the people who match every tag asked for, so a niche search shows niche matches. Results are ordered by when a person opened to new friends, not by how popular they or their tags are. There is no popularity score. |
-
-**Still unclear.**
-
-- **Age.** The app is for adults only. We have not decided how sign-up checks this.
-- **After finding someone.** A person finds another fan's card through tag search. The alpha gives them no way to contact that fan. MutualMatching concept is planned for beta. 
-- **Order of search results.** Among the people a search finds, the one who turned on Open to New Friends most recently comes first. A person who turned it on long ago ends up at the bottom, and we do not know yet if that is fair.
-- **Saved bios.** A person can save several bios and display one. These five concepts do not say where saved bios are kept or how one is discarded. We will specify that before we build it.
-- **Deleting an account.** In F2 we said that deleting an account would remove a person's card. This design cannot delete an account yet. A person can unpublish their card and remove their tags. Planned for beta. 

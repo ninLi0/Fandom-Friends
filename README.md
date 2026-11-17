@@ -12,4 +12,5 @@ Fandom Friends helps people in online fandoms introduce themselves with a bio ca
 - [F3: Concept design](concept-design.md)
 - [F3: Development plan](development-plan.md)
 - [F3: Visual design study](fandom-friends-design-study.pptx)
+- [F3: Design summary](design-summary.md)
 - [Team](team.md): Eric Ni, Samantha Shih, Heyang Ni, Katherine Liu
