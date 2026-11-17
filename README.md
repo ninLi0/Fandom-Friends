@@ -7,4 +7,5 @@ Fandom Friends helps people in online fandoms introduce themselves with a bio ca
 ## Project documents
 
 - [F2: Problem framing and ethical analysis](problem-framing.md)
+- [F3: User journey](user-journey.md)
 - [Team](team.md): Eric Ni, Samantha Shih, Heyang Ni, Katherine Liu
