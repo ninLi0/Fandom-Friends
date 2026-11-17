@@ -8,4 +8,5 @@ Fandom Friends helps people in online fandoms introduce themselves with a bio ca
 
 - [F2: Problem framing and ethical analysis](problem-framing.md)
 - [F3: User journey](user-journey.md)
+- [F3: Concept design](concept-design.md)
 - [Team](team.md): Eric Ni, Samantha Shih, Heyang Ni, Katherine Liu
