@@ -52,6 +52,6 @@ Changes to a published bio's tags or appearance affect what visitors see. We nee
 
 ### Alpha scope
 
-The remaining concepts need to specify how a bio is created and associated with its owner so edits and publication can be restricted to that person. We also need to decide whether display names, notes, and contact links are part of alpha and where they belong in the design.
+The app needs to record each bio's owner when it is created and use that record to authorize edits and publication. We also need to decide whether display names, notes, and contact links are part of alpha and where they belong in the design.
 
-The [current journey](user-journey.md) includes multiple named bios, starred tags, and image uploads that the remaining alpha concepts do not cover. We need to mark these as later work or specify their behavior before including them in alpha.
+The [current journey](user-journey.md) includes multiple named bios, starred tags, and image uploads whose behavior is not fully specified in the current alpha design. We need to mark these as later work or specify their behavior before including them in alpha.
