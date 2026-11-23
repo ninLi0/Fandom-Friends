@@ -29,10 +29,10 @@ toastRegion.setAttribute('aria-live', 'polite');
 toastRegion.setAttribute('aria-atomic', 'true');
 document.body.append(toastRegion);
 
-function toast(message: string, error = false): void {
+function toast(message: string, error = false, durationMs = 6000): void {
   clearTimeout(toastTimer);
   toastRegion.innerHTML = `<div class="toast ${error ? 'error' : 'success'}" role="status"><span>${e(message)}</span><button class="toast-close" data-action="close-toast" aria-label="Dismiss notification">×</button></div>`;
-  toastTimer = setTimeout(() => { toastRegion.innerHTML = ''; }, 6000);
+  toastTimer = setTimeout(() => { toastRegion.innerHTML = ''; }, durationMs);
 }
 
 function pending(value: boolean): void {
@@ -138,22 +138,47 @@ function renderAuth(register: boolean): void {
   shell(`<div class="page auth-layout"><div class="auth-copy"><p class="eyebrow">YOUR PEOPLE ARE OUT THERE</p><h1>${register ? 'Start with<br>something you love.' : 'Back for more<br>fandom feelings.'}</h1><p class="lead">A good introduction makes room for all your very specific interests.</p><div class="notice info">Our first collection is all about <strong>Frieren</strong>. More fandoms can come later; your corner starts here.</div></div><section class="panel auth-panel"><h2>${register ? 'Join Fandom Friends' : 'Welcome back'}</h2><p class="panel-description">${register ? 'Your login name stays private. You’ll choose a public handle in the editor.' : 'Sign in to your saved bios and discover fellow fans.'}</p><form id="auth-form" data-register="${register}"><div class="field"><label class="field-label" for="username">Login name</label><input class="input" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[a-zA-Z0-9_-]+" required spellcheck="false" autocapitalize="none" aria-describedby="username-help"><p class="help-text" id="username-help">3–32 letters, numbers, underscores, or hyphens.</p></div><div class="field"><label class="field-label" for="password">Password</label><input class="input" id="password" name="password" type="password" autocomplete="${register ? 'new-password' : 'current-password'}" minlength="${register ? 10 : 1}" maxlength="128" required>${register ? '<p class="help-text">Use at least 10 characters.</p>' : ''}</div>${register ? '<label class="checkbox-field"><input type="checkbox" name="adult" required><span>I’m 18 or older. I understand that anyone with my published card’s address can read it.</span></label>' : ''}<p id="auth-error" class="form-error" role="alert"></p><button class="button primary wide" type="submit">${register ? 'Create my account' : 'Sign in'}</button></form><p class="auth-switch">${register ? `Already found us? <a data-nav href="/login${query}">Sign in</a>` : `New around here? <a data-nav href="/register${query}">Create an account</a>`}</p></section></div>`);
 }
 
+function renderBioTabs(activeId: string | null): string {
+  const tabs = bios.map((bio) => {
+    const active = bio.id === activeId;
+    const published = publication?.item === bio.id;
+    return `<button type="button" class="bio-tab${active ? ' active' : ''}${published ? ' published' : ''}"
+      data-action="select-bio" data-id="${e(bio.id)}" aria-pressed="${active}" title="${e(bio.name)}">
+      <span class="bio-tab-name">${e(bio.name)}</span>${published ? '<span class="bio-status">Public</span>' : ''}
+    </button>`;
+  });
+  if (!activeId) tabs.push('<span class="bio-tab active"><span class="bio-tab-name">New bio</span><span class="bio-status">Unsaved</span></span>');
+  return `<div class="saved-toolbar">
+    <div class="bio-tabs" role="group" aria-label="Saved bios">${tabs.join('')}</div>
+    <button type="button" class="new-bio-tab" data-action="new-bio"><span aria-hidden="true">+</span> New bio</button>
+  </div>`;
+}
+
 function renderEditor(): void {
   if (!draft || !user) return;
   title('My bios');
   const current = publication?.item === draft.id;
   shell(`<div class="page editor-page">
-    <div class="saved-toolbar"><div class="bio-tabs" role="group" aria-label="Saved bios">${bios.map((bio) => `<button class="bio-tab ${bio.id === draft!.id ? 'active' : ''} ${publication?.item === bio.id ? 'published' : ''}" data-action="select-bio" data-id="${e(bio.id)}" aria-pressed="${bio.id === draft!.id}"><span class="bio-tab-name">${e(bio.name)}</span><span class="bio-status">${publication?.item === bio.id ? 'Public' : ''}</span></button>`).join('')}${!draft.id ? '<span class="bio-tab active"><span class="bio-tab-name">New bio</span><span class="bio-status">Unsaved</span></span>' : ''}</div><div class="page-heading-row"><button class="button secondary" data-action="new-bio">+ New bio</button></div></div>
-    <div class="editor-layout"><div class="editor-main"><section class="panel editor-intro">
+    <div class="editor-layout"><div class="editor-main">
+    ${renderBioTabs(draft.id)}
+    <section class="panel editor-intro">
     ${current ? '<p class="editor-public-note">Saving updates your public card.</p>' : ''}
     <div class="field"><label class="field-label" for="bio-name">Saved bio name <span class="help-inline">Only you see this</span></label><input class="input" id="bio-name" data-field="name" value="${e(draft.name)}" maxlength="60" required></div><div class="field"><label class="field-label" for="display-name">Display name</label><input class="input" id="display-name" data-field="displayName" value="${e(draft.displayName)}" maxlength="60" required autocomplete="nickname"></div><div class="field"><label class="field-label" for="bio-note">A little about you <span class="help-inline">Optional</span></label><textarea class="textarea" id="bio-note" data-field="note" rows="3" maxlength="280" placeholder="Currently thinking about…">${e(draft.note)}</textarea><p class="help-text">Skip sensitive details such as your exact age or location. <span id="note-count">${draft.note.length}</span>/280</p></div>
     <div class="section-heading"><h2>Your very specific interests</h2><p class="panel-description">Choose the things you’d love to talk about.</p></div><div id="editor-tags">${tagSelection(draft.tagIds, 'editor')}</div><div class="tag-picker"><label class="field-label" for="editor-search">Find a tag</label><input class="input tag-search" id="editor-search" type="search" autocomplete="off" placeholder="Try Fern, sketch swaps, or 葬送…" value="${e(editorQuery)}" aria-describedby="editor-tag-help" aria-controls="editor-suggestions"><div id="editor-suggestions" class="tag-suggestions" aria-label="Suggested tags">${suggestions(editorQuery, draft.tagIds, 'editor')}</div></div></section>
     <section class="panel"><div class="panel-heading"><div><h2>Layout</h2></div><button class="button ghost small" data-action="reset-style">Reset font & color</button></div><p class="field-label">Layout</p><div class="template-options" role="group" aria-label="Card layout">${catalog.templates.map((item) => `<button id="template-${e(item.id)}" class="template-option ${draft!.templateId === item.id ? 'selected' : ''}" data-action="template" data-id="${e(item.id)}" aria-pressed="${draft!.templateId === item.id}"><span class="template-mini ${e(item.layout)}" aria-hidden="true"><span></span><span></span><span></span></span><span class="template-name">${e(item.name)}</span></button>`).join('')}</div><p class="field-label">Font</p><div class="choice-row" role="group" aria-label="Card font">${catalog.fonts.map((font) => `<button id="font-${e(font)}" class="choice-button ${effectiveLook(draft!, catalog).font === font ? 'selected' : ''}" data-action="font" data-id="${e(font)}" aria-pressed="${effectiveLook(draft!, catalog).font === font}">${e(font)}</button>`).join('')}</div><p class="field-label">Color story</p><div class="choice-row" role="group" aria-label="Card palette">${catalog.palettes.map((palette) => `<button id="palette-${e(palette)}" class="choice-button ${effectiveLook(draft!, catalog).palette === palette ? 'selected' : ''}" data-action="palette" data-id="${e(palette)}" aria-pressed="${effectiveLook(draft!, catalog).palette === palette}"><span class="palette-swatch ${e(palette)}" aria-hidden="true"></span>${e(palette)}</button>`).join('')}</div><p class="help-text">Your font and color choices carry over when you switch layouts.</p></section>
     <div class="save-bar">
       <span class="save-status" id="save-status" role="status">${dirty ? 'Unsaved changes' : ''}</span>
-      <div class="save-actions">${draft.id ? '<button class="button ghost small" data-action="delete-bio">Delete</button><button class="button secondary" data-action="save-as-new">Save as new</button>' : ''}<button class="button primary" data-action="save">Save bio</button></div>
+      <div class="save-actions">${draft.id ? '<button class="button ghost small" data-action="delete-bio">Delete</button><button class="button secondary" data-action="save-as-new">Save as new</button>' : ''}<button class="button primary" data-action="save" aria-keyshortcuts="Meta+S Control+S">Save bio</button></div>
     </div></div>
     <aside class="editor-aside"><div class="preview-label"><span>LIVE PREVIEW</span></div><div id="card-preview" class="preview-stage">${previewCard()}</div><p class="preview-footer">Only one saved bio is public at a time. The rest stay yours.</p><section class="panel publish-panel">${publishingPanel()}</section></aside></div></div>`);
+
+  // Keep the selected tab visible when the toolbar scrolls, without scrolling the page.
+  const tabs = app.querySelector<HTMLElement>('.bio-tabs');
+  const activeTab = tabs?.querySelector('.bio-tab.active');
+  if (tabs && activeTab) {
+    const overflow = activeTab.getBoundingClientRect().right - tabs.getBoundingClientRect().right;
+    if (overflow > 0) tabs.scrollLeft += Math.ceil(overflow);
+  }
 }
 
 function previewCard(): string {
@@ -250,10 +275,16 @@ async function action(button: HTMLElement): Promise<void> {
     await navigate('/'); return;
   }
   if (name === 'new-bio' || name === 'select-bio') {
+    if (name === 'select-bio' && draft?.id === id) return;
     if (!mayDiscard()) return;
     draft = name === 'new-bio' ? newDraft() : fromBio(bios.find((bio) => bio.id === id)!);
     if (name === 'new-bio' && bios.length) draft.name = 'Untitled bio';
-    dirty = false; editorQuery = ''; renderEditor(); return;
+    dirty = false;
+    editorQuery = '';
+    renderEditor();
+    if (name === 'new-bio') app.querySelector<HTMLInputElement>('#bio-name')?.focus();
+    else app.querySelector<HTMLButtonElement>('.bio-tab[aria-pressed="true"]')?.focus({ preventScroll: true });
+    return;
   }
   if (name === 'add-tag' || name === 'remove-tag') {
     const discover = button.dataset.context === 'discover';
@@ -277,7 +308,12 @@ async function action(button: HTMLElement): Promise<void> {
     if (name === 'reset-style') { draft.font = null; draft.palette = null; }
     dirty = true; renderKeepingFocus(renderEditor); return;
   }
-  if (name === 'save' || name === 'save-as-new') { await save(name === 'save-as-new'); renderEditor(); toast('Bio saved. Looking good.'); return; }
+  if (name === 'save' || name === 'save-as-new') {
+    await save(name === 'save-as-new');
+    renderEditor();
+    toast('Bio saved.', false, 3000);
+    return;
+  }
   if (name === 'publish') {
     if (!draft) return;
     if (dirty || !draft.id) await save();
@@ -333,6 +369,15 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+  const saveShortcut = (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 's';
+  if (saveShortcut && location.pathname === '/editor') {
+    const saveButton = app.querySelector<HTMLButtonElement>('button[data-action="save"]');
+    if (!saveButton) return;
+    event.preventDefault();
+    if (!event.repeat && !busy) saveButton.click();
+    return;
+  }
+
   if (event.key !== 'ArrowDown' || !(event.target instanceof HTMLInputElement)) return;
   if (event.target.id !== 'editor-search' && event.target.id !== 'discover-search') return;
   event.preventDefault();

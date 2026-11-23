@@ -52,7 +52,7 @@ button { border: 0; }
 .user-chip { background: var(--soft); border: 1px solid #e0e6fc; border-radius: 40px; padding: 8px 14px; color: #45527c; font-size: 14px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .page.editor-page { padding-top: 20px; }
-.editor-page .saved-toolbar { margin-bottom: 12px; }
+.editor-page .saved-toolbar { margin-bottom: -1px; }
 .editor-main > .editor-intro { padding-top: 16px; }
 .editor-public-note {
   margin: 0 0 12px;
@@ -122,7 +122,6 @@ button { border: 0; }
 .editor-main, .editor-aside { min-width: 0; }
 .editor-aside { position: sticky; top: 24px; }
 .preview-label { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 14px; }
-.preview-stage { background: #eaeefa; border: 1px solid #e0e5f3; border-radius: 22px; padding: 27px; background-image: radial-gradient(#cbd3e9 .75px, transparent .75px); background-size: 13px 13px; }
 .preview-footer { color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; margin: 15px 0 24px; }
 .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
 .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; min-width: 0; }
@@ -140,15 +139,19 @@ button { border: 0; }
 .checkbox-field { display: flex; align-items: flex-start; gap: 11px; font-size: 14px; color: #526078; line-height: 1.6; margin: 19px 0; }
 .checkbox-field input { margin: 4px 0 0; width: 17px; height: 17px; accent-color: var(--blue); flex: 0 0 auto; }
 .section-label { display: block; color: #58647d; font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
-.saved-toolbar { display: flex; align-items: center; gap: 15px; margin: 0 0 26px; min-width: 0; }
-.bio-tabs { display: flex; align-items: stretch; gap: 9px; overflow-x: auto; min-width: 0; padding: 3px 3px 8px; scrollbar-width: thin; }
-.bio-tab { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 11px 16px; min-width: 145px; max-width: 230px; text-align: left; }
-.bio-tab:hover { border-color: #adbdf6; }
-.bio-tab.active { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); background: #f4f6ff; }
-.bio-tab-name { display: block; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 195px; }
-.bio-status { color: var(--muted); font-size: 11px; font-weight: 550; letter-spacing: .015em; }
+.saved-toolbar { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 8px; margin: 0 0 -1px; min-width: 0; }
+.bio-tabs { display: flex; align-items: flex-end; gap: 4px; overflow-x: auto; overflow-y: hidden; min-width: 0; padding: 3px 1px 0; scrollbar-width: none; overscroll-behavior-x: contain; scroll-padding-inline: 8px; }
+.bio-tabs::-webkit-scrollbar { display: none; }
+.bio-tab { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: flex-start; gap: 7px; height: 36px; min-width: 0; max-width: 230px; padding: 0 13px; border: 1px solid transparent; border-bottom-color: var(--line); border-radius: 9px 9px 0 0; background: #edf0f8; color: #63708b; text-align: left; white-space: nowrap; transition: color .15s, background .15s; }
+.bio-tab:hover { background: #e6ecfc; color: var(--blue); }
+.bio-tab.active { border-color: var(--line); border-bottom-color: #fff; box-shadow: inset 0 2px 0 #6681ee; background: #fff; color: var(--blue); }
+.bio-tab:focus-visible { outline-offset: -4px; }
+.bio-tab-name { display: block; min-width: 0; max-width: 175px; font-size: 14px; font-weight: 650; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bio-status { display: inline-flex; flex: 0 0 auto; color: var(--muted); font-size: 12px; font-weight: 550; line-height: 1.25; letter-spacing: .015em; }
 .bio-tab.published .bio-status { color: #26765c; }
-.saved-toolbar > .button { flex-shrink: 0; }
+.new-bio-tab { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 5px; height: 32px; margin-bottom: 4px; padding: 0 9px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--blue); font-size: 14px; font-weight: 650; line-height: 1.25; white-space: nowrap; }
+.new-bio-tab:hover { background: #eaf0ff; border-color: #dce4fc; }
+.saved-toolbar + .editor-intro { border-top-left-radius: 0; }
 
 .tag-picker { position: relative; margin-bottom: 20px; }
 .tag-picker > .field-label { display: block; margin-bottom: 8px; }
@@ -329,7 +332,6 @@ input[role="switch"]:not(.switch input) { width: 38px; height: 22px; accent-colo
   .hero-sticker { right: 0; width: 80px; height: 80px; font-size: 11px; }
   .editor-layout { gap: 23px; }
   .panel { padding: 22px; }
-  .preview-stage { padding: 19px; }
   .bio-card { padding: 25px; }
   .bio-card[data-layout="columns"] { padding-left: 74px; }
   .bio-card[data-layout="columns"]::before { width: 52px; }
@@ -357,7 +359,6 @@ input[role="switch"]:not(.switch input) { width: 38px; height: 22px; accent-colo
   .step h2, .step h3 { font-size: 16px; }
   .editor-layout { grid-template-columns: 1fr; gap: 30px; }
   .editor-aside { position: static; }
-  .preview-stage { padding: 25px; }
   .preview-stage .bio-card { max-width: 480px; margin: 0 auto; }
   .publish-panel { margin-top: 20px; }
   .card-name { font-size: 36px; }
@@ -404,16 +405,15 @@ input[role="switch"]:not(.switch input) { width: 38px; height: 22px; accent-colo
   .panel-footer { gap: 9px; }
   .button { padding: 10px 15px; font-size: 13px; }
   .input, .textarea, .select { font-size: 16px; }
-  .saved-toolbar { gap: 8px; }
-  .bio-tab { min-width: 125px; padding: 10px 13px; }
-  .bio-tab-name { max-width: 155px; font-size: 13px; }
-  .saved-toolbar > .button { padding-left: 10px; padding-right: 10px; }
+  .saved-toolbar { gap: 5px; }
+  .bio-tab { max-width: 190px; padding: 0 11px; }
+  .bio-tab-name { max-width: 140px; }
+  .new-bio-tab { padding: 0 7px; }
   .template-option { padding: 8px; gap: 8px; }
   .template-options { gap: 8px; }
   .template-mini { height: 60px; }
   .template-name { font-size: 11px; }
   .choice-button { padding-left: 10px; padding-right: 10px; }
-  .preview-stage { padding: 17px; border-radius: 16px; }
   .bio-card, .bio-card[data-layout="minimal"] { padding: 25px; border-radius: 13px; }
   .bio-card[data-layout="columns"] { padding-left: 65px; }
   .bio-card[data-layout="columns"]::before { width: 43px; }
