@@ -1,0 +1,19 @@
+{
+  "name": "fandom-friends",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tag-based introductions and opt-in discovery for fandom friends.",
+  "engines": { "node": ">=22.18.0" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/server.js",
+    "test": "npm run build && node --test dist/tests/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "22.17.2",
+    "typescript": "5.9.3"
+  }
+}
