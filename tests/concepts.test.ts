@@ -216,6 +216,64 @@ test('Catalog seed is idempotent and canonical grouping supports broader search'
   } finally { db.close(); }
 });
 
+test('Every character pair is available without changing legacy pairing tags or saved bios', () => {
+  const db = new DatabaseSync(':memory:');
+  try {
+    const tags = new Tagging(db);
+    const synonyms = new Synonymizing(db);
+    const groups = new Grouping(db);
+    const legacy = [
+      { id: 'fern-stark', name: 'Fern × Stark', aliases: ['Fern/Stark', 'Stark/Fern', 'Fern x Stark', 'Stark × Fern'] },
+      { id: 'himmel-frieren', name: 'Himmel × Frieren', aliases: ['Himmel/Frieren', 'Frieren/Himmel', 'Himmel x Frieren'] },
+    ];
+    // Model a database created before the complete pairing catalog was added.
+    for (const pairing of legacy) {
+      tags.define(pairing.name, pairing.id);
+      tags.add('existing-bio', pairing.id);
+      pairing.aliases.forEach((name, index) => {
+        const id = `${pairing.id}-alias-${index + 1}`;
+        tags.define(name, id);
+        synonyms.link(id, pairing.id);
+      });
+    }
+    seedCatalog(db);
+
+    const characters = CATALOG_TAGS.filter(tag => tag.category === 'character');
+    const characterIds = new Set(characters.map(tag => tag.id));
+    const pairings = CATALOG_TAGS.filter(tag => tag.category === 'pairing');
+    assert.equal(pairings.length, characters.length * (characters.length - 1) / 2);
+    assert.equal(new Set(CATALOG_TAGS.map(tag => tag.id)).size, CATALOG_TAGS.length, 'All catalog IDs are unique.');
+    const distinctPairs = new Set(pairings.map(tag => JSON.stringify([...tag.parents].sort())));
+    assert.equal(distinctPairs.size, pairings.length, 'Each unordered pair occurs only once.');
+    for (const pairing of pairings) {
+      assert.equal(pairing.parents.length, 2);
+      assert.notEqual(pairing.parents[0], pairing.parents[1]);
+      assert.ok(pairing.parents.every(id => characterIds.has(id)));
+      const directParents = new Set(groups._above(pairing.id).filter(parent => parent.direct).map(parent => parent.broader));
+      assert.deepEqual(directParents, new Set(pairing.parents), `${pairing.name} belongs directly to both characters.`);
+    }
+
+    for (const pairing of legacy) {
+      const catalogPairing = pairings.find(tag => tag.id === pairing.id);
+      assert.ok(catalogPairing);
+      assert.equal(catalogPairing.name, pairing.name);
+      assert.deepEqual(catalogPairing.aliases.slice(0, pairing.aliases.length), pairing.aliases);
+      assert.equal(tags.all().find(tag => tag.id === pairing.id)?.name, pairing.name);
+      pairing.aliases.forEach((name, index) => {
+        const id = `${pairing.id}-alias-${index + 1}`;
+        assert.equal(tags.all().find(tag => tag.id === id)?.name, name);
+        assert.equal(synonyms._canonical(id), pairing.id);
+      });
+    }
+    const fernHimmel = pairings.find(tag => tag.parents.includes('fern') && tag.parents.includes('himmel'));
+    assert.ok(fernHimmel);
+    assert.ok(tags._suggest('Himmel/Fern').some(tag => synonyms._canonical(tag.tag) === fernHimmel.id),
+      'A new pairing is searchable by the reverse character order.');
+    seedCatalog(db);
+    assert.deepEqual(tags._tagsOf('existing-bio').map(tag => tag.tag).sort(), legacy.map(tag => tag.id).sort());
+  } finally { db.close(); }
+});
+
 test('Concept state survives closing and reopening the database', () => {
   const directory = mkdtempSync(join(tmpdir(), 'fandom-concepts-'));
   const path = join(directory, 'test.sqlite');
