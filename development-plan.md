@@ -30,11 +30,11 @@ The alpha's seven concepts are specified in `concept-design.md`. The beta adds t
 - A person adding their own pictures, and starring favorites (both are in the user journey).
 - Series other than Frieren.
 - Reporting a card. The description is free text and nothing filters it yet.
+- The beta's features in the stages table: For You, Pass with undo, private interest with matching, PNG export with copy as text, and account deletion. Then user testing.
 
 **What changed from the plan**
 
 - The setup and concept stages (Nov 18 and Nov 20) slipped to Nov 22 and 23.
-- Eric built the first six concepts, the reactions, and plain pages as one backbone, so that everyone else could build a page on a working API. Heyang then moved her editor and card design onto it, and added a seventh concept.
 - Drafting is a sixth concept. It keeps a person's saved bios, which the F3 reactions needed and no concept provided.
 - Describing is a seventh concept. It keeps a bio's display name and description, so the name a bio is saved under can stay private.
 - Pictures come from the tag, not from the person: the series cover and character portraits are links to AniList. Uploading a picture was built and tested on a side branch and moves to the beta.

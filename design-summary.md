@@ -6,6 +6,8 @@ Tagging and Grouping let fans choose specific fandoms, characters, pairings, and
 
 Tagging records the bio's interests, while Templating records its layout, font, and palette choices. The preview brings these together so the owner can check the introduction before publishing it.
 
+Drafting keeps a person's saved bios, so they can have several and work on one before sharing it. Describing keeps each bio's display name and short note, so the name it is saved under can stay private.
+
 ## Publishing and discovery
 
 Publishing gives a person one public bio at a stable address. They can share that link without appearing in search. Turning on "Open to New Friends" also lists the bio, letting other fans find it through its tags.
@@ -26,7 +28,7 @@ Any social links included on a card should be labeled as user-provided and unver
 
 ### 3. Readability and accessibility
 
-Published cards use real text that screen readers and translation tools can access. Templates should provide readable defaults, and the available fonts and palettes need to be checked for contrast and readability. We also need to check keyboard access and reading order. The current scope does not include PNG export.
+Published cards use real text that screen readers and translation tools can access. Templates should provide readable defaults, and the available fonts and palettes need to be checked for contrast and readability. We also need to check keyboard access and reading order. The alpha does not include PNG export.
 
 ### 4. Choosing to stop sharing
 

@@ -1,6 +1,6 @@
 # Developing Fandom Friends
 
-This is the working backbone of the alpha: the concepts, the reactions that connect them, the tag list, tests, and one page per area. Heyang's MVP editor, tag picker, and shared card design have been adapted to the alpha API. The other pages keep their starting styles so their owners can work on them independently.
+This guide explains how to run, test, and change Fandom Friends. The app is a set of concepts, the reactions that connect them, a tag list, tests, and one page per area.
 
 ## Run it
 
@@ -18,7 +18,7 @@ bun run db:up
 bun run dev
 ```
 
-Open http://localhost:3000. The tag list and the alpha/MVP templates load by themselves on the first start.
+Open http://localhost:3000. The tag list and the templates load by themselves on the first start.
 
 Before you push:
 
@@ -29,6 +29,28 @@ bun run test
 ```bash
 bun run check
 ```
+
+## Testing
+
+`bun run test` runs 440 tests in 20 files, in about 90 seconds:
+
+- `tests/concepts/` runs each concept alone: its principle, variants, and refusals.
+- `tests/http/` calls all 27 endpoints the way a browser does, including who may call each one and what a refusal says.
+- `tests/seed/` checks the tag list, its loader, and that every picture names a real tag.
+
+Results at the alpha (Nov 23, 2026, on a fresh clone): 440 pass, 0 fail, and `bun run check` passes for all nine concepts.
+
+Checked on the deployed app (https://fandom-friends.mit-sdg.dev) the same day:
+
+- The page script it serves is byte for byte the one this code builds.
+- The sign-in page, the search page, an unknown handle's page, and `/health` answer.
+- Signed out, the search, bio, and sharing endpoints refuse with "not signed in". Tag suggestions and public cards answer for anyone.
+- Signed in, a saved bio loads with its tags, look, and pictures, and unsaved edits update the live preview.
+- A displayed bio's public page shows its card, with or without a sign-in, and gives away nothing about its owner beyond the card.
+- Search finds people by tag and by another name, leaves out the searcher, and says so when nobody matches.
+- The editor, the search page, and the public page fit a phone-width screen without sideways scrolling.
+
+Not covered: there are no automated browser tests, so the pages are checked by hand. On the deployed app, a malformed address such as `/u/%` gets the hosting platform's error page, not ours.
 
 ## What is where
 
@@ -44,7 +66,7 @@ bun run check
 | `src/web/` | The pages. `pages/` has one file per page; `card.ts` draws a bio card and `card-pictures.ts` places the pictures on it; `api.ts` is the typed client; `editor-styles.ts` holds the scoped editor and shared card/tag-picker styles, and `site-styles.ts` the top bar, sign-in page and search page styles. |
 | `src/host/` | The server: HTTP, the session cookie, and the sentence shown for each refusal. |
 | `src/storage/` | The MongoDB connection, and the lock that keeps two starting servers from loading the tag list twice. |
-| `tests/` | `concepts/` tests each concept alone. `http/` tests the endpoints the way a browser calls them. `seed/` tests the tag list and its loader. |
+| `tests/` | `concepts/` tests each concept alone. `http/` tests the endpoints the way a browser calls them. `seed/` tests the tag list and its loader. `storage/` tests the startup lock. |
 | `generated/` | Written by `bun run generate`. Never edit it by hand. |
 
 ## The concepts
@@ -119,13 +141,11 @@ The call names follow the paths, and TypeScript knows every input and answer.
 - **An endpoint:** edit its file in `src/compositions/`, say what it does in the matching file in `design/compositions/`, then run `bun run generate` and `bun run check`.
 - **A refusal message:** `applicationSentences` in `src/host/http-policy.ts`.
 
-## MVP editor migration
+## How the editor saves
 
-The editor's markup, card markup, styles, and controls follow local MVP commit `89c72bf`. Edits stay in the browser's draft and live preview until **Save bio** or **Save & display this bio**. **Save as new**, Ctrl/Cmd+S, and prompts before discarding unsaved changes are restored. The three editor layouts are Convention poster, Side by side, and Quiet notes; the fonts and palettes match that commit.
+Edits stay in the browser's draft and live preview until **Save bio** or **Save & display this bio**. **Save as new** makes a copy, Ctrl/Cmd+S saves, and the page asks before discarding unsaved changes. The editor offers three layouts (Convention poster, Side by side, and Quiet notes), three fonts, and three color schemes.
 
-The alpha adds owner-protected storage for public display names and notes, plus a query for explicit font/palette overrides. Saved bio names stay private. Existing alpha templates and the team's tag vocabulary remain available; existing bios keep their look until their owner changes it. The alpha requires unique saved bio names, so **Save as new** gives a same-name copy a private `(copy)` suffix. Saving uses the alpha's per-action endpoints; if a request fails midway, the draft stays unsaved and another save reads the current server state before retrying.
-
-The old SQLite data is not imported into MongoDB by this UI migration. The untracked custom-color utility is separate work and was not part of `89c72bf`.
+A bio's saved name stays private; its display name and note are what other people see. Saved names must be unique, so **Save as new** gives a copy with the same name a `(copy)` suffix. A bio keeps its look until its owner changes it. Saving calls one endpoint per change; if a request fails midway, the draft stays unsaved, and the next save reads the server's current state before retrying.
 
 ## Deployment on 6.1040 Apps
 
@@ -151,4 +171,5 @@ This app serves its pages and API from one server. The guide's two-server plain-
 - **Stars and a person's own pictures.** Both are in `user-journey.md` and neither is built. Cards show pictures already, but they come from the tag, not from the person (see `src/seed/pictures.ts`).
 - **More series.** Adding one means adding its tags to `src/seed/vocabulary.ts` and its pictures to `src/seed/pictures.ts`. `tests/seed/Pictures.test.ts` fails if a picture names a tag that does not exist.
 - **Reporting a card.** The description on a bio is free text and nothing filters it.
-- **The tag list.** `src/seed/vocabulary.ts` needs a second pair of eyes on every name.
+- **The tag list.** A second person should review every name in `src/seed/vocabulary.ts`.
+- **The beta's features.** For You, Pass with undo, private interest with matching, PNG export with copy as text, and account deletion are scheduled in `development-plan.md` and not built.

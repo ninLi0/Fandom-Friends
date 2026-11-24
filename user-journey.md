@@ -1,8 +1,12 @@
-Alice wants to meet people with common fandoms and interest. She registers an account on Fandom Friends and logs in to create an introduction.
+# Fandom Friends: User Journey
+
+**At the alpha (Nov 23):** the app supports this journey for *Frieren* tags only, so the *Haikyu!!* and *Dungeon Meshi* steps wait for more series. Starring favorites and uploading a sketch come in the beta.
+
+Alice wants to meet people with common fandoms and interests. She registers an account on Fandom Friends and logs in to create an introduction.
 
 In the bio creator, Alice adds fandom tags for *Frieren* and *Haikyu!!*, a pairing tag for *Fern × Stark*, and Interest tags for **Sketch swaps** and **Episode discussions**. As she types, autocomplete suggests existing tags. Alternate names are aliases of the same tag. For example, typing “Delicious in Dungeon” suggests its official name *Dungeon Meshi*, so fans searching for either name can find one another. Selected tags are displayed as grouped under Fandoms, Characters and Pairings, and Interests. Each tag has a star button to mark or unmark a current favorite, and a remove button to delete it from the bio.
 
-The app arranges Alice's selections into a bio card and shows a live preview beside the editor. Alice stars *Frieren* and *Fern × Stark*, then uploads one of her sketches for the starred pairing. The preview refreshes to give these favorites more space and place the sketch beside the pairing. Her other interests remain visible as a comma separated lists of Fandoms, Characters and Pairings, and Interests. She can see how her introduction will look without positioning each element herself.
+The app arranges Alice's selections into a bio card and shows a live preview beside the editor. Alice stars *Frieren* and *Fern × Stark*, then uploads one of her sketches for the starred pairing. The preview refreshes to give these favorites more space and place the sketch beside the pairing. Her other interests remain visible as comma-separated lists of Fandoms, Characters and Pairings, and Interests. She can see how her introduction will look without positioning each element herself.
 
 Alice saves the card as “Frieren and sketch swaps,” selects it as her displayed bio, and enables **Open to New Friends**. Other users can now discover that card and search for its tags. Only her displayed bio is public; additional saved bios remain private until she chooses to display one. She can turn off Open to New Friends whenever she wants to pause discovery.
 
