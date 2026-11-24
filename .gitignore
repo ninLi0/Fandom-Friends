@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Local helper files from coding agents.
+.claude/
+.sync-engine/work/
