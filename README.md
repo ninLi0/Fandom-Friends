@@ -7,7 +7,7 @@ Fandom Friends helps people in online fandoms introduce themselves with a bio ca
 ## The alpha (F4)
 
 - Deployed app: https://fandom-friends.mit-sdg.dev
-- Narrated screen recording: VIDEO_LINK_GOES_HERE
+- Narrated screen recording: https://youtu.be/t7EpGaloGN4
 - [How to run and change the code](DEVELOPING.md)
 - [Third-party material](THIRD_PARTY_NOTICES.md), including where the pictures on cards come from
 
