@@ -34,7 +34,7 @@ Users can unpublish their hosted card when they no longer want to share it. They
 
 ### 5. Expressing niche interests
 
-The team's tag collection may leave out interests that matter to some fans. The proposed response is to let people suggest missing tags and describe unlisted interests in an optional personal note. The remaining design still needs to specify where that note belongs. Alternative-name relationships are maintained by the team and can be corrected; they are not inferred automatically by an AI agent.
+The team's tag collection may leave out interests that matter to some fans. The proposed response is to let people suggest missing tags and describe unlisted interests in an optional personal note. In the alpha, that note is "A little about you" on each bio. Alternative-name relationships are maintained by the team and can be corrected; they are not inferred automatically by an AI agent.
 
 ### 6. Adults and vulnerable users
 
@@ -52,6 +52,9 @@ Changes to a published bio's tags or appearance affect what visitors see. We nee
 
 ### Alpha scope
 
-The app needs to record each bio's owner when it is created and use that record to authorize edits and publication. We also need to decide whether display names, notes, and contact links are part of alpha and where they belong in the design.
+The questions this section asked at F3 are settled in the alpha.
 
-The [current journey](user-journey.md) includes multiple named bios, starred tags, and image uploads whose behavior is not fully specified in the current alpha design. We need to mark these as later work or specify their behavior before including them in alpha.
+- **Owners.** Each bio records its owner when it is created, and only the owner can edit, display, or delete it.
+- **Display names and notes.** A bio has a display name and a short note, "A little about you", of up to 280 characters. The name a bio is saved under stays private. The editor asks people to skip sensitive details such as their exact age or location. Nothing filters the note yet; reporting a card is later work. Contact links are not part of the alpha.
+- **Several bios.** A person can save several named bios, copy one with "Save as new", and display one at a time.
+- **Stars and pictures.** Starred tags and a person's own pictures are later work, planned for the beta. Cards do show pictures already: the cover of a series and the portraits of its characters, as links to images at AniList.

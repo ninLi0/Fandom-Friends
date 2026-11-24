@@ -40,7 +40,8 @@ bun run check
 | `src/concepts/<Name>/` | One class per concept (stores its state in MongoDB) and its registration. |
 | `src/compositions/` | The endpoints. Each one is a reaction: a request, checks, concept actions, an answer. |
 | `src/seed/vocabulary.ts` | The Frieren tag list, other names, groups, templates, fonts, and color schemes. |
-| `src/web/` | The pages. `pages/` has one file per page; `card.ts` draws a bio card; `api.ts` is the typed client; `editor-styles.ts` holds the scoped editor and shared card/tag-picker styles. |
+| `src/seed/pictures.ts` | The picture of each series and character tag, by the tag's main name: a link to an image at AniList. Nothing is copied or stored. |
+| `src/web/` | The pages. `pages/` has one file per page; `card.ts` draws a bio card and `card-pictures.ts` places the pictures on it; `api.ts` is the typed client; `editor-styles.ts` holds the scoped editor and shared card/tag-picker styles, and `site-styles.ts` the top bar, sign-in page and search page styles. |
 | `src/host/` | The server: HTTP, the session cookie, and the sentence shown for each refusal. |
 | `src/storage/` | The MongoDB connection, and the lock that keeps two starting servers from loading the tag list twice. |
 | `tests/` | `concepts/` tests each concept alone. `http/` tests the endpoints the way a browser calls them. `seed/` tests the tag list and its loader. |
@@ -133,7 +134,7 @@ Follow the [course deployment guide](https://61040.github.io/fa26/resources/depl
 | Setting | Value |
 | --- | --- |
 | Repository URL | `https://github.com/ninLi0/Fandom-Friends` |
-| Branch | `alpha-backbone` |
+| Branch | `main` |
 | Runtime | Bun; `packageManager` pins the version |
 | Package directories | `.` alone |
 | Build script | Leave empty; this server bundles the browser code at startup |
@@ -145,18 +146,9 @@ Add MongoDB and keep the suggested variable name **`MONGODB_URI`**, which is wha
 
 This app serves its pages and API from one server. The guide's two-server plain-TypeScript example does not require changing this app to run two servers.
 
-## What is left for the alpha
+## What is left after the alpha
 
-- **The pages.** The editor migration is ready for manual UI review. Public bio, search, and sign-in pages still need their owners' interaction and visual design work. The owners are the ones in `development-plan.md`:
-
-  | Piece | Files | Owner |
-  | --- | --- | --- |
-  | Bio editor with live preview | `src/web/pages/editor.ts`, `src/web/tag-picker.ts`, `src/web/card.ts` | Heyang |
-  | Public bio page, search page | `src/web/pages/public-card.ts`, `src/web/pages/search.ts` | Katherine |
-  | Sign-in page, visual design, deployment | `src/web/pages/sign-in.ts`, the CSS in `src/web/index.html` | Samantha |
-  | Tag list, search rule | `src/seed/vocabulary.ts`, `src/compositions/Discovery.ts` | Eric |
-
-- **The card's look.** The MVP editor choices and existing alpha looks are styled in `src/web/editor-styles.ts` and used by the preview, public page, and search results.
-- **Deploying.** Use the settings above, then verify the deployed app's sign-in, saving, sharing, and search flows.
+- **Stars and a person's own pictures.** Both are in `user-journey.md` and neither is built. Cards show pictures already, but they come from the tag, not from the person (see `src/seed/pictures.ts`).
+- **More series.** Adding one means adding its tags to `src/seed/vocabulary.ts` and its pictures to `src/seed/pictures.ts`. `tests/seed/Pictures.test.ts` fails if a picture names a tag that does not exist.
+- **Reporting a card.** The description on a bio is free text and nothing filters it.
 - **The tag list.** `src/seed/vocabulary.ts` needs a second pair of eyes on every name.
-- **The alpha's other deliverables.** The narrated screen recording linked in the README, the updated designs, and the updated development plan.

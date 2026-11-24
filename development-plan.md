@@ -14,7 +14,31 @@
 
 Thanksgiving is November 26, so the discovery work is due the day before. This plan has no in-app chat and no reporting flow.
 
-The alpha's five concepts are specified in `concept-design.md`. The beta adds three more (Featuring, Hiding, Matching). We will specify them before we build them.
+The alpha's seven concepts are specified in `concept-design.md`. The beta adds three more (Featuring, Hiding, Matching). We will specify them before we build them.
+
+## Progress at the alpha (Nov 23)
+
+**Done**
+
+- The back end of the alpha is complete. Nine concepts pass their tests: the seven in `concept-design.md` and the two reused for sign-in. The reactions are 27 endpoints, each tested the way a browser calls it. There are 440 tests in all.
+- The Frieren tag list is loaded when the app starts: 38 tags, 40 other names, and the groups.
+- The app works end to end and is deployed: sign-in, the bio editor with a live preview, saving several bios and "Save as new", a display name and a short description, sharing at a public link, Open to New Friends, and search by tag.
+- Cards show the cover of the series and the portraits of its characters, as links to images at AniList.
+
+**What remains after the alpha**
+
+- A person adding their own pictures, and starring favorites (both are in the user journey).
+- Series other than Frieren.
+- Reporting a card. The description is free text and nothing filters it yet.
+
+**What changed from the plan**
+
+- The setup and concept stages (Nov 18 and Nov 20) slipped to Nov 22 and 23.
+- Eric built the first six concepts, the reactions, and plain pages as one backbone, so that everyone else could build a page on a working API. Heyang then moved her editor and card design onto it, and added a seventh concept.
+- Drafting is a sixth concept. It keeps a person's saved bios, which the F3 reactions needed and no concept provided.
+- Describing is a seventh concept. It keeps a bio's display name and description, so the name a bio is saved under can stay private.
+- Pictures come from the tag, not from the person: the series cover and character portraits are links to AniList. Uploading a picture was built and tested on a side branch and moves to the beta.
+- Sign-in uses the Authenticating concept from the framework's example, with Sessioning from Concept Box. The framework handles requests, so there is no Requesting concept.
 
 ## Tag list
 
@@ -28,18 +52,18 @@ Everyone designs, codes, tests, and reviews. Each concept has one owner.
 
 | Person | Alpha | Beta |
 |---|---|---|
-| Eric | Tagging, Synonymizing, Grouping, the Frieren tag list, search | For You, the second anime's tag list |
-| Heyang | Templating, the bio editor with live preview | PNG export with copy as text |
+| Eric | Drafting, Tagging, Synonymizing, Grouping, the Frieren tag list, search | For You, the second anime's tag list |
+| Heyang | Templating, Describing, the bio editor with live preview | PNG export with copy as text |
 | Katherine | Publishing, the public bio page, the search page | Hiding (Pass), Matching |
 | Samantha | Sign-in, deployment, visual design | Featuring (stars and pictures), account deletion |
 
-Sign-in, sessions, and requests are reused from Concept Box. Beta pictures will reuse its FileUploading, which assumes a cloud bucket. Featuring, Hiding, and Matching are working names.
+Sign-in reuses Authenticating from the framework's example and Sessioning from Concept Box; the framework handles requests. Beta pictures will reuse Concept Box's FileUploading, which assumes a cloud bucket. Featuring, Hiding, and Matching are working names.
 
 ## Risks
 
 | Risk | What we do about it | Fallback |
 |---|---|---|
-| Saving several bios adds work to the alpha | Build one bio end to end first, then add saving several. | Ship the alpha with one bio per person. |
+| Saving several bios adds work to the alpha | Settled: saving several bios is built, with "Save as new". | Not needed. |
 | The week before the beta has six features and Thanksgiving | One owner per feature, and the discovery work is due before the holiday. | Cut in order: pictures, then interest and matching, then Pass. |
 | Too few testers share tags | Recruit from the fandoms in the tag list. A bio is useful alone as a link. | Team members run partner accounts to test search. |
 | The tag list is poor: duplicates, or the same name in two series, such as "Stark" | Build it by hand and review each other's lists. Synonym links can be undone, and groups tell same-named tags apart. | Fewer tags, each checked by two people. |
