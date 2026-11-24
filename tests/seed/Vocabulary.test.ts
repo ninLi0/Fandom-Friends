@@ -10,6 +10,7 @@ import type { Tag } from "../../src/concepts/Tagging/Tagging.ts";
 import { seedVocabulary, type VocabularyConcepts } from "../../src/seed/apply.ts";
 import {
   fonts,
+  generatePairings,
   layouts,
   palettes,
   tags as starterTags,
@@ -209,6 +210,36 @@ describe("the starter tag list", () => {
     expect(mainNames(outsideTheSeries)).toEqual([]);
   });
 
+  test("every two distinct characters have exactly one pairing", () => {
+    expect(pairings).toHaveLength(characters.length * (characters.length - 1) / 2);
+    const keys = pairings.map((tag) => JSON.stringify([...placedUnder(tag)].sort()));
+    expect(new Set(keys).size).toBe(pairings.length);
+    for (const character of characters) {
+      expect(pairings.filter((pairing) => placedUnder(pairing).includes(character.name))).toHaveLength(characters.length - 1);
+    }
+  });
+
+  test("pair generation handles small catalogs and uses character names instead of a fixed pairing list", () => {
+    expect(generatePairings([])).toEqual([]);
+    expect(generatePairings([{ name: "A" }])).toEqual([]);
+    const generated = generatePairings(["A", "B", "C", "D"].map((name) => ({ name })));
+    expect(mainNames(generated)).toEqual(["A/B", "A/C", "A/D", "B/C", "B/D", "C/D"]);
+    const pairing = generated.find((tag) => tag.name === "A/D");
+    expect(pairing?.under).toEqual(["A", "D"]);
+    expect(pairing?.alsoCalled).toEqual(["D/A", "A × D"]);
+  });
+
+  test("existing pairing names, spellings, and character parents remain compatible", () => {
+    const frieren = pairings.find((tag) => tag.name === "Frieren/Himmel");
+    expect(frieren?.under).toEqual(["Frieren (character)", "Himmel"]);
+    expect(frieren?.alsoCalled).toContain("Frieren × Himmel");
+    expect(frieren?.alsoCalled).toContain("Himmel/Frieren");
+    const ubel = pairings.find((tag) => tag.name === "Übel/Land");
+    for (const alias of ["Ubel/Land", "Übel × Land", "Land/Übel"]) expect(ubel?.alsoCalled).toContain(alias);
+    expect(mainNames(pairings)).toContain("Fern/Stark");
+    expect(mainNames(pairings)).toContain("Kanne/Lawine");
+  });
+
   test('every interest lies directly under "Interests" and nothing else', () => {
     expect(mainNames(interests)).toContain("Sketch swaps");
     expect(mainNames(interests.filter((tag) => !onlyUnder(tag, INTERESTS)))).toEqual([]);
@@ -313,6 +344,24 @@ describe("loading a vocabulary into the concepts", () => {
       if (rows.length > 0) placedOtherNames.push(other);
     }
     expect(placedOtherNames).toEqual([]);
+  });
+
+  test("expanding the four original pairings keeps their saved identities and bio tags", async () => {
+    const vocabulary = createInstances(database());
+    const originalNames = new Set(["Fern/Stark", "Frieren/Himmel", "Übel/Land", "Kanne/Lawine"]);
+    const originalPairs = pairings.filter((tag) => originalNames.has(tag.name));
+    const originalTags = starterTags.filter((tag) => !pairings.includes(tag) || originalNames.has(tag.name));
+    await seedVocabulary(vocabulary, originalTags);
+    const originalTagCalled = await tagFinder(vocabulary);
+    const identities = new Map(everyName(originalPairs).map((name) => [name, originalTagCalled(name)]));
+    const bio = "bio-with-an-existing-pairing" as Draft;
+    await vocabulary.Tagging.add({ item: bio, tag: originalTagCalled("Fern/Stark") });
+
+    await seedVocabulary(vocabulary);
+    const tagCalled = await tagFinder(vocabulary);
+    for (const [name, identity] of identities) expect(tagCalled(name)).toBe(identity);
+    expect(await vocabulary.Tagging._tagsOf({ item: bio })).toEqual([{ tag: identities.get("Fern/Stark")!, name: "Fern/Stark" }]);
+    expect(await above(vocabulary, tagCalled("Fern/Mimic"))).toEqual([["Fern", true], ["Frieren", false], ["Mimic", true]]);
   });
 
   test('the alpha and MVP templates exist, "Classic" is the default, and a bio with nothing chosen shows its look', async () => {

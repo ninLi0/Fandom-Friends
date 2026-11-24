@@ -377,7 +377,10 @@ describe("the starter vocabulary the server loads", () => {
   test("accented names are found ignoring case, and Japanese names are found", async () => {
     const app = await startApp(database(), { tags: starterTags, templates: starterTemplates });
 
-    expect(await suggested(app, "übel")).toEqual(["Land/Übel", "Übel", "Übel × Land", "Übel/Land"]);
+    const accented = await suggested(app, "übel");
+    expect(accented).toEqual(expect.arrayContaining(["Land/Übel", "Übel", "Übel × Land", "Übel/Land"]));
+    expect(accented.length).toBeGreaterThan(4);
+    expect(accented.every((name) => name.toLowerCase().includes("übel"))).toBe(true);
     expect(await suggested(app, "フリーレン")).toEqual(["フリーレン", "葬送のフリーレン"]);
   });
 

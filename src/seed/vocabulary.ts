@@ -1,8 +1,9 @@
 /**
  * The starter vocabulary: the tags, their other names, what lies under what, and the templates.
  *
- * This file is the hand-built list the team reviews. The server loads it at startup (see apply.ts) and only
- * ever adds what is missing, so editing a name here adds a new tag; it does not rename the old one.
+ * The team maintains the characters and interests; every two characters generate a pairing. The server
+ * loads this vocabulary at startup (see apply.ts) and only adds what is missing, so editing a name here
+ * adds a new tag; it does not rename the old one.
  *
  * How the list is shaped:
  * - A fandom (a series) has nothing above it.
@@ -23,6 +24,11 @@ export interface SeedTag {
   readonly alsoCalled?: readonly string[];
   /** The main names of the broader tags this one lies directly under. */
   readonly under?: readonly string[];
+}
+
+export interface SeedCharacter extends SeedTag {
+  /** A shorter pairing label when the character's tag needs disambiguation from the series. */
+  readonly pairingName?: string;
 }
 
 export interface SeedTemplate {
@@ -49,22 +55,12 @@ const SERIES = "Frieren";
 const INTERESTS = interestsGroup;
 
 const character = (name: string, ...alsoCalled: string[]): SeedTag => ({ name, alsoCalled, under: [SERIES] });
-const pairing = (name: string, of: readonly [string, string], ...alsoCalled: string[]): SeedTag => ({
-  name,
-  alsoCalled,
-  under: of,
-});
 const interest = (name: string, ...alsoCalled: string[]): SeedTag => ({ name, alsoCalled, under: [INTERESTS] });
 
-export const tags: readonly SeedTag[] = [
-  // The series.
-  {
-    name: SERIES,
-    alsoCalled: ["Sousou no Frieren", "Frieren: Beyond Journey's End", "葬送のフリーレン"],
-  },
-
-  // Characters. The elf shares her name with the series, so her tag says which one it is.
-  character("Frieren (character)", "フリーレン"),
+/** Add a character here and every pairing involving it is generated below. */
+export const characters: readonly SeedCharacter[] = [
+  // The elf's tag is disambiguated, while her existing pairing names stay "Frieren/...".
+  { ...character("Frieren (character)", "フリーレン"), pairingName: "Frieren" },
   character("Fern", "フェルン"),
   character("Stark", "シュタルク"),
   character("Himmel", "ヒンメル"),
@@ -85,12 +81,36 @@ export const tags: readonly SeedTag[] = [
   character("Linie", "リーニエ"),
   character("Kraft", "クラフト"),
   character("Mimic", "ミミック"),
+];
 
-  // Pairings.
-  pairing("Fern/Stark", ["Fern", "Stark"], "Fern × Stark", "Stark/Fern"),
-  pairing("Frieren/Himmel", ["Frieren (character)", "Himmel"], "Frieren × Himmel", "Himmel/Frieren"),
-  pairing("Übel/Land", ["Übel", "Land"], "Ubel/Land", "Übel × Land", "Land/Übel"),
-  pairing("Kanne/Lawine", ["Kanne", "Lawine"], "Kanne × Lawine", "Lawine/Kanne"),
+/** One tag for each unordered pair: n characters produce n(n-1)/2 pairings, in catalog order. */
+export function generatePairings(characters: readonly SeedCharacter[]): SeedTag[] {
+  const pairings: SeedTag[] = [];
+  for (const [index, first] of characters.entries()) {
+    for (const second of characters.slice(index + 1)) {
+      const left = first.pairingName ?? first.name;
+      const right = second.pairingName ?? second.name;
+      const name = `${left}/${right}`;
+      const asciiName = name.normalize("NFD").replace(/\p{M}/gu, "");
+      pairings.push({
+        name,
+        alsoCalled: [...new Set([`${right}/${left}`, `${left} × ${right}`, asciiName])].filter((alias) => alias !== name),
+        under: [first.name, second.name],
+      });
+    }
+  }
+  return pairings;
+}
+
+export const tags: readonly SeedTag[] = [
+  // The series.
+  {
+    name: SERIES,
+    alsoCalled: ["Sousou no Frieren", "Frieren: Beyond Journey's End", "葬送のフリーレン"],
+  },
+
+  ...characters.map(({ pairingName: _pairingName, ...tag }) => tag),
+  ...generatePairings(characters),
 
   // Interests: what a person wants to do with other fans.
   { name: INTERESTS },

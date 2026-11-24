@@ -138,6 +138,7 @@ The call names follow the paths, and TypeScript knows every input and answer.
 
 - **A page:** edit its file in `src/web/pages/`, save, and reload the browser.
 - **A tag, another name, or a group:** edit `src/seed/vocabulary.ts` and restart. The loader only adds; it never renames or removes. To rename or remove something already loaded, empty your local database with `docker compose down -v`, then `bun run db:up`. A deployed database has to be fixed by hand.
+- **A character or pairing:** add characters to the `characters` list in `src/seed/vocabulary.ts`. Every two distinct characters automatically produce one `character1/character2` tag, for `n(n-1)/2` pairings. Append new characters to keep the existing pairing-name order. Restarting adds the new pairs while retaining saved tag identities.
 - **An endpoint:** edit its file in `src/compositions/`, say what it does in the matching file in `design/compositions/`, then run `bun run generate` and `bun run check`.
 - **A refusal message:** `applicationSentences` in `src/host/http-policy.ts`.
 
