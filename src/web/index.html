@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fandom Friends</title>
+    <style>
+      /*
+        A plain working style, so every page can be used and read. The visual design replaces it.
+        The last block is the part to keep in some form: it gives each layout, font, and color scheme
+        name from src/seed/vocabulary.ts a look.
+      */
+      body { margin: 0 auto; max-width: 60rem; padding: 1rem; font: 1rem/1.5 system-ui, sans-serif; color: #1c1c1c; background: #fff; }
+      header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid #c8c8c8; }
+      header .account { margin-left: auto; }
+      a[aria-current="page"] { font-weight: 700; }
+      #status { position: sticky; top: 0; z-index: 1; min-height: 1.5rem; margin: 0; padding: 0.5rem 0; font-weight: 600; background: #fff; }
+      h1 { font-size: 1.6rem; } h2 { font-size: 1.2rem; margin-top: 1.5rem; } h3 { font-size: 1rem; margin-bottom: 0.25rem; }
+      label { font-weight: 600; }
+      input, select, button { font: inherit; padding: 0.35rem 0.6rem; }
+      button { cursor: pointer; }
+      button[aria-pressed="true"] { font-weight: 700; outline: 2px solid currentColor; }
+      .stack { display: grid; gap: 0.35rem; max-width: 22rem; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+      .quiet { color: #555; margin: 0; }
+      ul { padding: 0; margin: 0.25rem 0; list-style: none; }
+      .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .tags li { padding: 0.15rem 0.6rem; border: 1px solid currentColor; border-radius: 1rem; }
+      .tags li button { padding: 0 0.3rem; border: 0; background: none; color: inherit; }
+      .suggestions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+      .tag-picker { margin: 0.75rem 0; } .tag-picker input { display: block; width: min(100%, 22rem); }
+      .bio-list ul { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+      .editor { display: grid; gap: 0 2rem; grid-template-columns: 1fr; }
+      @media (min-width: 48rem) { .editor { grid-template-columns: 1fr 1fr; } .bio-list, .sharing { grid-column: 1 / -1; } }
+      .results { display: grid; gap: 1.5rem; margin-top: 1rem; }
+
+      /* The card and its look. */
+      .card { padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #0003; display: grid; gap: 0.5rem 1.5rem; }
+      .card h2, .card h3 { margin: 0; }
+      .card[data-layout="Two columns"] { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+      .card[data-layout="Two columns"] .card-handle { grid-column: 1 / -1; }
+      .card[data-layout="Spotlight"] section:first-of-type { font-size: 1.4rem; }
+      .card[data-font="Serif"] { font-family: Georgia, "Times New Roman", serif; }
+      .card[data-font="Sans"] { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; }
+      .card[data-font="Rounded"] { font-family: ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", sans-serif; }
+      .card[data-font="Mono"] { font-family: ui-monospace, Menlo, Consolas, monospace; }
+      .card[data-palette="Parchment"] { background: #f6efdd; color: #3b2f1e; }
+      .card[data-palette="Midnight"] { background: #14213d; color: #f1f5ff; }
+      .card[data-palette="Sakura"] { background: #fde8ee; color: #5a1f33; }
+      .card[data-palette="Forest"] { background: #e6f1e4; color: #1f3d27; }
+    </style>
+  </head>
+  <body>
+    <header id="bar"></header>
+    <p id="status" role="status"></p>
+    <main id="view"><p>Loading…</p></main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
