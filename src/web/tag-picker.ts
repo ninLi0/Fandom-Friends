@@ -1,50 +1,181 @@
-/**
- * A text box that suggests tags as a person types. The editor and the search page both use it.
- * Another name of a tag is shown with its main tag, as in "Sousou no Frieren (Frieren)".
- */
+/** A shared tag browser, with canonical names for matching aliases and keyboard navigation. */
+import { interestsGroup } from "../seed/offered.ts";
 import { api, reason, refused, type Suggestion } from "./api.ts";
 import { button, fill, h } from "./dom.ts";
 
 let nextId = 0;
 
-export function tagPicker({ label, pick, say }: {
+export function tagPicker({ label, pick, say, selected = () => [] }: {
   label: string;
-  /** Called with the tag the person chose. */
+  /** Called with the tag the person chose. The API resolves aliases to their main tag. */
   pick: (tag: Suggestion) => unknown;
   /** Shows a message to the person. */
   say: (message: string) => void;
+  /** Main tag identities already selected in the editor or discovery filters. */
+  selected?: () => readonly string[];
 }): HTMLElement {
   const id = `tag-picker-${(nextId += 1)}`;
-  const input = h("input", { id, type: "search", autocomplete: "off", placeholder: "Type a tag, such as Frieren" });
-  const list = h("ul", { className: "suggestions" });
+  const input = h("input", {
+    id,
+    className: "input tag-search",
+    type: "search",
+    autocomplete: "off",
+    placeholder: "Try Frieren, Fern, sketch swaps, or 葬送…",
+    maxLength: 64,
+  });
+  const list = h("ul", { id: `${id}-suggestions`, className: "suggestions tag-suggestions", ariaLabel: "Suggested tags" });
+  const help = h("p", {
+    id: `${id}-help`,
+    className: "help-text tag-picker-help",
+    textContent: "Search a character, pairing, or activity. Other names work too.",
+  });
+  input.setAttribute("aria-controls", list.id);
+  input.setAttribute("aria-describedby", help.id);
+  const root = h("div", { className: "tag-picker" }, h("label", { className: "field-label", htmlFor: id, textContent: label }), input, help, list);
   let latest = 0;
+  let choosing = false;
+  let keepClosed = false;
+
+  function options() {
+    if (list.hidden || list.getAttribute("aria-busy") === "true") return [];
+    return [...list.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")];
+  }
+
+  function close() {
+    keepClosed = true;
+    input.focus();
+    keepClosed = false;
+    latest += 1;
+    list.hidden = true;
+  }
+
+  async function choose(tag: Suggestion) {
+    if (choosing) return;
+    choosing = true;
+    latest += 1;
+    input.disabled = true;
+    list.inert = true;
+    root.setAttribute("aria-busy", "true");
+    try {
+      const picked = await pick(tag);
+      // The editor reports its own refusal and returns false; keep the query ready to retry.
+      if (picked !== false) input.value = "";
+    } catch (error) {
+      say(error instanceof Error ? error.message : "That tag could not be selected. Try again.");
+    } finally {
+      choosing = false;
+      input.disabled = false;
+      list.inert = false;
+      root.removeAttribute("aria-busy");
+      if (root.isConnected) {
+        keepClosed = true;
+        input.focus();
+        keepClosed = false;
+        void suggest();
+      }
+    }
+  }
 
   async function suggest() {
+    if (choosing) return;
     const asked = (latest += 1);
     const text = input.value.trim();
-    if (text === "") return fill(list);
+    list.hidden = false;
+    list.inert = true;
+    list.setAttribute("aria-busy", "true");
     const result = await api.tags.suggest({ text });
-    // A slower, older answer must not replace a newer one.
+    // Slower answers and answers from before a selection cannot replace the current list.
     if (asked !== latest) return;
-    if (refused(result)) return say(reason(result));
+    list.inert = false;
+    list.removeAttribute("aria-busy");
+    if (refused(result)) {
+      fill(list, h("li", { className: "tag-empty", textContent: reason(result) }));
+      return;
+    }
+
+    const chosen = new Set(selected());
+    const mainTags = new Map<string, Suggestion>();
+    for (const tag of result.tags) {
+      if (tag.mainName === interestsGroup || chosen.has(tag.main)) continue;
+      // Show each main tag once, preferring its own name when both it and an alias match.
+      if (!mainTags.has(tag.main) || tag.tag === tag.main) mainTags.set(tag.main, tag);
+    }
+    const suggestions = [...mainTags.values()].slice(0, text ? 12 : 8);
     fill(
       list,
-      ...result.tags.slice(0, 8).map((tag) =>
+      ...suggestions.map((tag) =>
         h(
           "li",
           {},
-          button(tag.tag === tag.main ? tag.name : `${tag.name} (${tag.mainName})`, async () => {
-            input.value = "";
-            fill(list);
-            await pick(tag);
-            input.focus();
-          }),
+          button("", () => choose(tag), { className: "tag-option", ariaLabel: `Choose ${tag.mainName}` }),
         ),
       ),
-      result.tags.length === 0 ? h("li", { className: "quiet", textContent: "No tag matches." }) : null,
+      suggestions.length === 0
+        ? h("li", {
+            className: "tag-empty",
+            textContent: text ? "No more matching tags. Try another character, pairing, or activity." : "You’ve selected all available tags.",
+          })
+        : null,
     );
+    // Build labels as text nodes so tag names cannot become markup.
+    options().forEach((option, index) => {
+      const tag = suggestions[index]!;
+      fill(
+        option,
+        h(
+          "span",
+          {},
+          h("span", { className: "tag-option-name", textContent: tag.mainName }),
+          text && tag.tag !== tag.main ? h("span", { className: "tag-alias", textContent: `Also known as ${tag.name}` }) : null,
+        ),
+        h("span", { ariaHidden: "true", textContent: "+" }),
+      );
+    });
   }
 
   input.addEventListener("input", () => void suggest());
-  return h("div", { className: "tag-picker" }, h("label", { htmlFor: id, textContent: label }), input, list);
+  input.addEventListener("focus", () => {
+    if (!keepClosed) void suggest();
+  });
+  input.addEventListener("keydown", (event) => {
+    // Enter and arrows belong to the input method while composing Japanese/Chinese text.
+    if (event.isComposing || event.keyCode === 229) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (list.hidden) {
+        void suggest().then(() => (event.key === "ArrowDown" ? options()[0] : options().at(-1))?.focus());
+      } else {
+        (event.key === "ArrowDown" ? options()[0] : options().at(-1))?.focus();
+      }
+    } else if (event.key === "Enter") {
+      // A tag search inside another form must never submit that form.
+      event.preventDefault();
+      if (!list.hidden) options()[0]?.click();
+    }
+  });
+  list.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.keyCode === 229) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const buttons = options();
+    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const next = event.key === "ArrowDown" ? at + 1 : at - 1;
+    if (next < 0 || next >= buttons.length) {
+      keepClosed = true;
+      input.focus();
+      keepClosed = false;
+    } else buttons[next]?.focus();
+  });
+
+  // Empty text is supported by the vocabulary API, so useful tags appear before the first keystroke.
+  void suggest();
+  return root;
 }

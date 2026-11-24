@@ -1,6 +1,6 @@
 # Developing Fandom Friends
 
-This is the working backbone of the alpha: the concepts, the reactions that connect them, the tag list, tests, and one plain page per area. Everything runs end to end. The pages are unstyled on purpose so each of us can take one and make it real.
+This is the working backbone of the alpha: the concepts, the reactions that connect them, the tag list, tests, and one page per area. Heyang's MVP editor, tag picker, and shared card design have been adapted to the alpha API. The other pages keep their starting styles so their owners can work on them independently.
 
 ## Run it
 
@@ -40,7 +40,7 @@ bun run check
 | `src/concepts/<Name>/` | One class per concept (stores its state in MongoDB) and its registration. |
 | `src/compositions/` | The endpoints. Each one is a reaction: a request, checks, concept actions, an answer. |
 | `src/seed/vocabulary.ts` | The Frieren tag list, other names, groups, templates, fonts, and color schemes. |
-| `src/web/` | The pages. `pages/` has one file per page; `card.ts` draws a bio card; `api.ts` is the typed client. |
+| `src/web/` | The pages. `pages/` has one file per page; `card.ts` draws a bio card; `api.ts` is the typed client; `editor-styles.ts` holds the scoped editor and shared card/tag-picker styles. |
 | `src/host/` | The server: HTTP, the session cookie, and the sentence shown for each refusal. |
 | `src/storage/` | The MongoDB connection, and the lock that keeps two starting servers from loading the tag list twice. |
 | `tests/` | `concepts/` tests each concept alone. `http/` tests the endpoints the way a browser calls them. `seed/` tests the tag list and its loader. |
@@ -116,9 +116,34 @@ The call names follow the paths, and TypeScript knows every input and answer.
 - **An endpoint:** edit its file in `src/compositions/`, say what it does in the matching file in `design/compositions/`, then run `bun run generate` and `bun run check`.
 - **A refusal message:** `applicationSentences` in `src/host/http-policy.ts`.
 
+## MVP editor migration
+
+The editor uses the alpha's existing per-change endpoints: adding/removing a tag or changing the look saves immediately, and the preview draws the returned card. Saved bio names stay private; choose **Rename** to save an edited name. The editor also keeps saved-bio tabs, tag groups, alternate-name searches, keyboard selection, layout/font/palette choices, sharing controls, and **Copy link**.
+
+The alpha card contains tags and a look, with a public handle supplied separately. The MVP's display name, personal note, custom colors, and whole-draft **Save as new** are not represented by the current alpha API. Those need a separate data-model/API change before they can be restored. The old SQLite data is not imported into MongoDB by this UI migration.
+
+## Deployment on 6.1040 Apps
+
+Follow the [course deployment guide](https://61040.github.io/fa26/resources/deploying-apps/) with these settings for this repository:
+
+| Setting | Value |
+| --- | --- |
+| Repository URL | `https://github.com/ninLi0/Fandom-Friends` |
+| Branch | `alpha-backbone` |
+| Runtime | Bun; `packageManager` pins the version |
+| Package directories | `.` alone |
+| Build script | Leave empty; this server bundles the browser code at startup |
+| Start script | `start` |
+| Port | `3000` |
+| Health check path | `/health` |
+
+Add MongoDB and keep the suggested variable name **`MONGODB_URI`**, which is what `src/storage/mongo.ts` reads. Set **`PUBLIC_ORIGIN`** to the app's full HTTPS address, such as `https://your-app.mit-sdg.dev`, with no trailing slash. The platform supplies `HOST`, `PORT`, `NODE_ENV`, and the database connection string. Docker and the local `.env` are not used on the platform. Commit and push the code before selecting that commit for deployment; pushing alone does not deploy it.
+
+This app serves its pages and API from one server. The guide's two-server plain-TypeScript example does not require changing this app to run two servers.
+
 ## What is left for the alpha
 
-- **The pages.** Each page works but is plain. They need real interaction and visual design. The owners are the ones in `development-plan.md`:
+- **The pages.** The editor migration is ready for manual UI review. Public bio, search, and sign-in pages still need their owners' interaction and visual design work. The owners are the ones in `development-plan.md`:
 
   | Piece | Files | Owner |
   | --- | --- | --- |
@@ -127,7 +152,7 @@ The call names follow the paths, and TypeScript knows every input and answer.
   | Sign-in page, visual design, deployment | `src/web/pages/sign-in.ts`, the CSS in `src/web/index.html` | Samantha |
   | Tag list, search rule | `src/seed/vocabulary.ts`, `src/compositions/Discovery.ts` | Eric |
 
-- **The card's look.** The three layouts, four fonts, and four color schemes are a few lines of CSS at the end of `src/web/index.html`.
-- **Deploying.** On mit-sdg.dev: install `bun install`, build `bun run build`, start `bun run start`, health check `/health`, port 3000, add MongoDB, and set `PUBLIC_ORIGIN` to the app's https address. Without `PUBLIC_ORIGIN` the app starts but refuses every request from the browser.
+- **The card's look.** The three layouts, four fonts, and four color schemes are styled in `src/web/editor-styles.ts` and used by the preview, public page, and search results.
+- **Deploying.** Use the settings above, then verify the deployed app's sign-in, saving, sharing, and search flows.
 - **The tag list.** `src/seed/vocabulary.ts` needs a second pair of eyes on every name.
 - **The alpha's other deliverables.** The narrated screen recording linked in the README, the updated designs, and the updated development plan.

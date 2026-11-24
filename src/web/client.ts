@@ -1,12 +1,13 @@
 /**
  * The browser's entry point: it decides which page to show for the address and draws the bar above it.
  *
- * The pages live in ./pages, one file each. They are plain and unstyled on purpose: each works end to end
- * against the real API, so a teammate can restyle or rewrite one page without touching the others.
+ * The pages live in ./pages, one file each. Each works end to end against the real API,
+ * so a teammate can restyle or rewrite one page without touching the others.
  * Moving between pages never reloads the browser.
  */
 import { api, reason, refused } from "./api.ts";
 import { button, fill, h } from "./dom.ts";
+import { editorStyles } from "./editor-styles.ts";
 import { editorPage } from "./pages/editor.ts";
 import { publicCardPage } from "./pages/public-card.ts";
 import { searchPage } from "./pages/search.ts";
@@ -28,6 +29,9 @@ export type Page = (context: PageContext) => HTMLElement;
 const bar = document.querySelector<HTMLElement>("#bar")!;
 const status = document.querySelector<HTMLElement>("#status")!;
 const view = document.querySelector<HTMLElement>("#view")!;
+
+// Keep Heyang's editor/card styles together without changing another page's stylesheet.
+document.head.append(h("style", { textContent: editorStyles }));
 
 /** The signed-in person's username, or null. Undefined until the first check answers. */
 let username: string | null | undefined;
