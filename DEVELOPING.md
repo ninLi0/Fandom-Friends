@@ -18,12 +18,12 @@ bun run db:up
 bun run dev
 ```
 
-Open http://localhost:3000. The tag list and the three templates load by themselves on the first start.
+Open http://localhost:3000. The tag list and the alpha/MVP templates load by themselves on the first start.
 
 Before you push:
 
 ```bash
-bun test
+bun run test
 ```
 
 ```bash
@@ -34,7 +34,7 @@ bun run check
 
 | Folder | What it holds |
 | --- | --- |
-| `design/concepts/` | The eight concept specifications. The framework checks each one against its code. |
+| `design/concepts/` | The concept specifications. The framework checks each one against its code. |
 | `design/compositions/` | What each group of endpoints does, in words, with a link to every reaction. |
 | `design/types.md` | Which concept's type stands for what: a bio is a draft, a person is an account. |
 | `src/concepts/<Name>/` | One class per concept (stores its state in MongoDB) and its registration. |
@@ -46,13 +46,14 @@ bun run check
 | `tests/` | `concepts/` tests each concept alone. `http/` tests the endpoints the way a browser calls them. `seed/` tests the tag list and its loader. |
 | `generated/` | Written by `bun run generate`. Never edit it by hand. |
 
-## The eight concepts
+## The concepts
 
 | Concept | What it keeps | Used for |
 | --- | --- | --- |
 | Authenticating | usernames and passwords | sign-in |
 | Sessioning | who a browser is signed in as | sign-in |
 | Drafting | a person's saved bios, by name | several bios per person |
+| Describing | a bio's public display name and short note | public profile details |
 | Tagging | the tag list, and which bio has which tag | a bio's tags |
 | Synonymizing | which tag names mean the same tag | "Sousou no Frieren" = "Frieren" |
 | Grouping | which tag lies under which | "Fern/Stark" counts as "Frieren" |
@@ -70,8 +71,9 @@ Every call is a `POST` under `/api` with a JSON body. The session is a cookie th
 | `/auth/sign-out` | | `signedOut` | signed in |
 | `/bios/list` | | `bios`: each `bio`, `name` | signed in |
 | `/bios/start` | `name` | `bio` | signed in |
-| `/bios/view` | `bio` | `bio`, `name`, `card` | the bio's owner |
+| `/bios/view` | `bio` | `bio`, `name`, `card`, `overrides` | the bio's owner |
 | `/bios/rename` | `bio`, `name` | `bio` | the bio's owner |
+| `/bios/details` | `bio`, `displayName`, `note` | `bio`, `card` | the bio's owner |
 | `/bios/discard` | `bio` | `bio` | the bio's owner |
 | `/bios/tags/add`, `/bios/tags/remove` | `bio`, `tag` | `bio`, `card` | the bio's owner |
 | `/bios/look/template` | `bio`, `template` | `bio`, `card` | the bio's owner |
@@ -89,7 +91,7 @@ Every call is a `POST` under `/api` with a JSON body. The session is a cookie th
 | `/tags/suggest` | `text` | `tags`: each `tag`, `name`, `main`, `mainName` | anyone |
 | `/templates/list` | | `templates` | anyone |
 
-A `card` is what a bio shows: `tags` (each with `name` and the broader tags it lies `under`) and `look` (`template`, `layout`, `font`, `palette`).
+A `card` is what a bio shows: `displayName`, `note`, `tags` (each with `name` and the broader tags it lies `under`), and `look` (`template`, `layout`, `font`, `palette`). The owner's `overrides` distinguish chosen font/palette values from a template's defaults.
 
 A refused request answers with a status of 400, 401, 404, or 409 and a body like this. Show `detail` to the person as it is.
 
@@ -118,9 +120,11 @@ The call names follow the paths, and TypeScript knows every input and answer.
 
 ## MVP editor migration
 
-The editor uses the alpha's existing per-change endpoints: adding/removing a tag or changing the look saves immediately, and the preview draws the returned card. Saved bio names stay private; choose **Rename** to save an edited name. The editor also keeps saved-bio tabs, tag groups, alternate-name searches, keyboard selection, layout/font/palette choices, sharing controls, and **Copy link**.
+The editor's markup, card markup, styles, and controls follow local MVP commit `89c72bf`. Edits stay in the browser's draft and live preview until **Save bio** or **Save & display this bio**. **Save as new**, Ctrl/Cmd+S, and prompts before discarding unsaved changes are restored. The three editor layouts are Convention poster, Side by side, and Quiet notes; the fonts and palettes match that commit.
 
-The alpha card contains tags and a look, with a public handle supplied separately. The MVP's display name, personal note, custom colors, and whole-draft **Save as new** are not represented by the current alpha API. Those need a separate data-model/API change before they can be restored. The old SQLite data is not imported into MongoDB by this UI migration.
+The alpha adds owner-protected storage for public display names and notes, plus a query for explicit font/palette overrides. Saved bio names stay private. Existing alpha templates and the team's tag vocabulary remain available; existing bios keep their look until their owner changes it. The alpha requires unique saved bio names, so **Save as new** gives a same-name copy a private `(copy)` suffix. Saving uses the alpha's per-action endpoints; if a request fails midway, the draft stays unsaved and another save reads the current server state before retrying.
+
+The old SQLite data is not imported into MongoDB by this UI migration. The untracked custom-color utility is separate work and was not part of `89c72bf`.
 
 ## Deployment on 6.1040 Apps
 
@@ -152,7 +156,7 @@ This app serves its pages and API from one server. The guide's two-server plain-
   | Sign-in page, visual design, deployment | `src/web/pages/sign-in.ts`, the CSS in `src/web/index.html` | Samantha |
   | Tag list, search rule | `src/seed/vocabulary.ts`, `src/compositions/Discovery.ts` | Eric |
 
-- **The card's look.** The three layouts, four fonts, and four color schemes are styled in `src/web/editor-styles.ts` and used by the preview, public page, and search results.
+- **The card's look.** The MVP editor choices and existing alpha looks are styled in `src/web/editor-styles.ts` and used by the preview, public page, and search results.
 - **Deploying.** Use the settings above, then verify the deployed app's sign-in, saving, sharing, and search flows.
 - **The tag list.** `src/seed/vocabulary.ts` needs a second pair of eyes on every name.
 - **The alpha's other deliverables.** The narrated screen recording linked in the README, the updated designs, and the updated development plan.

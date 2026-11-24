@@ -10,7 +10,7 @@
     "db:up": "docker compose up -d --wait --wait-timeout 60 && bun scripts/init-mongo.ts",
     "db:stop": "docker compose stop",
     "db:clean": "bun scripts/drop-test-databases.ts",
-    "test": "bun test --timeout 15000",
+    "test": "bun test ./tests --timeout 15000",
     "build": "bun build src/web/client.ts --target browser --minify --outfile dist/app.js",
     "start": "NODE_ENV=production bun src/main.ts",
     "dev": "bun --watch src/main.ts",

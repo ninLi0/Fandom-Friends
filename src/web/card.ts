@@ -1,7 +1,8 @@
 /** The same bio card is used in the live preview, public page, and discovery results. */
 import { interestsGroup } from "../seed/offered.ts";
 import type { Card, CardTag } from "./api.ts";
-import { h } from "./dom.ts";
+import { renderCard } from "./mvp-card.ts";
+import type { Catalog } from "./mvp-types.ts";
 
 export interface CardTagGroup {
   key: "fandom" | "character" | "pairing" | "interest";
@@ -34,33 +35,20 @@ export function groupCardTags(tags: readonly CardTag[]): CardTagGroup[] {
   return groups.filter((group) => group.tags.length > 0);
 }
 
+/** Render the same original card markup in the editor, public page, and search. */
 export function drawCard(card: Card, handle?: string): HTMLElement {
   const groups = groupCardTags(card.tags);
-  // A saved bio's name is private. The alpha exposes only its public handle on the card.
-  const identity = handle ? `@${handle}` : "Your name here";
-  const article = h(
-    "article",
-    { className: "card bio-card", ariaLabel: handle ? `${identity}’s bio card` : "Your bio card preview" },
-    h("div", { className: "card-identity" }, h("h2", { className: "card-name", textContent: identity })),
-    h("div", { className: "card-divider", ariaHidden: "true" }),
-    h(
-      "div",
-      { className: "card-tags" },
-      ...groups.map((group) =>
-        h(
-          "section",
-          { className: "card-tag-group" },
-          h("h3", { className: "card-group-label", textContent: group.title }),
-          h("ul", { className: "card-tag-list" }, ...group.tags.map((tag) => h("li", { className: "card-tag", textContent: tag.name }))),
-        ),
-      ),
-      groups.length === 0
-        ? h("p", { className: "card-empty" }, "A favorite character. A niche pairing.", h("br"), "Add some tags and make yourself at home.")
-        : null,
-    ),
-  );
-  article.dataset.layout = card.look.layout ?? "";
-  article.dataset.font = card.look.font ?? "";
-  article.dataset.palette = card.look.palette ?? "";
+  const catalog: Catalog = {
+    tags: groups.flatMap((group) => group.tags.map((tag) => ({ id: tag.tag, name: tag.name, category: group.key, aliases: [], parents: [] }))),
+    templates: [], fonts: [], palettes: [],
+  };
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = renderCard({
+    displayName: card.displayName, note: card.note, handle,
+    tagIds: card.tags.map((tag) => tag.tag),
+    look: { template: card.look.template ?? "", layout: card.look.layout ?? "poster", font: card.look.font ?? "Sans", palette: card.look.palette ?? "Ocean" },
+  }, catalog);
+  const article = wrapper.firstElementChild as HTMLElement;
+  article.classList.add("card");
   return article;
 }

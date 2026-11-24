@@ -255,4 +255,10 @@ export class TemplatingConcept<Item extends string = string> {
     // An item has a document exactly while it has a template, a font, or a palette.
     return { styled: (await this.items.countDocuments({ _id: item }, { limit: 1 })) > 0 };
   }
+
+  /** Reports only the item's own choices, so editors can preserve inheritance when saving. */
+  async _overrides({ item }: { item: Item }): Promise<{ font: string | null; palette: string | null }> {
+    const chosen = await this.items.findOne({ _id: item });
+    return { font: chosen?.font ?? null, palette: chosen?.palette ?? null };
+  }
 }

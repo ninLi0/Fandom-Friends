@@ -5,7 +5,7 @@
 import { describe, expect, test } from "bun:test";
 import { createInstances } from "../../src/assembly.ts";
 import { seedVocabulary } from "../../src/seed/apply.ts";
-import { tags as starterTags } from "../../src/seed/vocabulary.ts";
+import { tags as starterTags, templates as starterTemplates } from "../../src/seed/vocabulary.ts";
 import { withLock } from "../../src/storage/mongo.ts";
 import { refusal, useTestDatabase } from "../support/database.ts";
 
@@ -109,6 +109,6 @@ describe("two servers loading the tag list at the same moment", () => {
       0,
       everyName.length,
     ]);
-    expect(await servers[0]!.Templating._templates({})).toHaveLength(3);
+    expect(await servers[0]!.Templating._templates({})).toHaveLength(starterTemplates.length);
   });
 });

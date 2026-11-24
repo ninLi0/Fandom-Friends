@@ -7,8 +7,8 @@ A person is their account, identified by its username. Wherever another concept
 needs a user, owner, publisher, or session subject, the application supplies
 that account.
 
-A bio is a draft: one saved version of a person's introduction. Its tags, its
-look, and whether it is the public one are each kept by a different concept
+A bio is a draft: one saved version of a person's introduction. Its public
+details, tags, look, and whether it is the public one are each kept by a different concept
 under that same draft.
 
 The tags are one shared list. Other names for a tag and the broader tags it lies
@@ -22,6 +22,9 @@ instantiate Sessioning with
 
 instantiate Drafting with
   User is Authenticating.Account
+
+instantiate Describing with
+  Item is Drafting.Draft
 
 instantiate Tagging with
   Item is Drafting.Draft

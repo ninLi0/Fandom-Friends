@@ -29,6 +29,26 @@ Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
 
 - `Authenticating` — instance of `Authenticating` — [Fandom Friends application types](../design/types.md), line 18.
 
+### Describing
+
+Defined in [Describing](../design/concepts/Describing.md), line 1.
+
+#### Actions
+
+- `set(item: Item, name: String, text: String) : returns (item: Item)`
+  - Refuses `INVALID_DESCRIPTION_NAME`: A display name must not be blank and must be at most 60 characters.
+  - Refuses `INVALID_DESCRIPTION_TEXT`: A description must be at most 280 characters.
+- `remove(item: Item) : returns (item: Item)`
+
+#### Queries
+
+- `_get(item: Item) : one (name: String, text: String)`
+
+#### Instances
+
+- `Describing` — instance of `Describing` — [Fandom Friends application types](../design/types.md), line 26.
+  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 27.
+
 ### Drafting
 
 Defined in [Drafting](../design/concepts/Drafting.md), line 1.
@@ -77,8 +97,8 @@ Defined in [Grouping](../design/concepts/Grouping.md), line 1.
 
 #### Instances
 
-- `Grouping` — instance of `Grouping` — [Fandom Friends application types](../design/types.md), line 32.
-  - `Item` is `Tagging.Tag` — [Fandom Friends application types](../design/types.md), line 33.
+- `Grouping` — instance of `Grouping` — [Fandom Friends application types](../design/types.md), line 35.
+  - `Item` is `Tagging.Tag` — [Fandom Friends application types](../design/types.md), line 36.
 
 ### Publishing
 
@@ -114,9 +134,9 @@ Defined in [Publishing](../design/concepts/Publishing.md), line 1.
 
 #### Instances
 
-- `Publishing` — instance of `Publishing` — [Fandom Friends application types](../design/types.md), line 38.
-  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 40.
-  - `User` is `Authenticating.Account` — [Fandom Friends application types](../design/types.md), line 39.
+- `Publishing` — instance of `Publishing` — [Fandom Friends application types](../design/types.md), line 41.
+  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 43.
+  - `User` is `Authenticating.Account` — [Fandom Friends application types](../design/types.md), line 42.
 
 ### Sessioning
 
@@ -156,8 +176,8 @@ Defined in [Synonymizing](../design/concepts/Synonymizing.md), line 1.
 
 #### Instances
 
-- `Synonymizing` — instance of `Synonymizing` — [Fandom Friends application types](../design/types.md), line 29.
-  - `Item` is `Tagging.Tag` — [Fandom Friends application types](../design/types.md), line 30.
+- `Synonymizing` — instance of `Synonymizing` — [Fandom Friends application types](../design/types.md), line 32.
+  - `Item` is `Tagging.Tag` — [Fandom Friends application types](../design/types.md), line 33.
 
 ### Tagging
 
@@ -187,8 +207,8 @@ Defined in [Tagging](../design/concepts/Tagging.md), line 1.
 
 #### Instances
 
-- `Tagging` — instance of `Tagging` — [Fandom Friends application types](../design/types.md), line 26.
-  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 27.
+- `Tagging` — instance of `Tagging` — [Fandom Friends application types](../design/types.md), line 29.
+  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 30.
 
 ### Templating
 
@@ -230,11 +250,12 @@ Defined in [Templating](../design/concepts/Templating.md), line 1.
 - `_templates() : many (template: Template, name: String, layout: String, font: String, palette: String, default: Flag)`
 - `_look(item: Item) : optional (template: Template, layout: String, font: String, palette: String)`
 - `_styled(item: Item) : one (styled: Flag)`
+- `_overrides(item: Item) : one (font: String | null, palette: String | null)`
 
 #### Instances
 
-- `Templating` — instance of `Templating` — [Fandom Friends application types](../design/types.md), line 35.
-  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 36.
+- `Templating` — instance of `Templating` — [Fandom Friends application types](../design/types.md), line 38.
+  - `Item` is `Drafting.Draft` — [Fandom Friends application types](../design/types.md), line 39.
 
 ## Computations
 
@@ -359,14 +380,17 @@ Authored path: `Bios.Keeping.Card`.
 - Covered by [Bios](../design/compositions/Bios.md), line 16.
 
 ```former
-Former "the card of (bio)" — inputs (bio); bindings (tag, name, broader, direct, broaderName, template, layout, font, palette); promises exactly one record — forms:
+Former "the card of (bio)" — inputs (bio); bindings (displayName, note, tag, name, broader, direct, broaderName, template, layout, font, palette); promises exactly one record — forms:
   a record of
+    where Describing._get (item: bio) has (name: displayName, text: note)
     where whether Templating._look (item: bio) has (font, layout, palette, template)
+    displayName
     look: a record of
       font
       layout
       palette
       template
+    note
     tags: each Tagging._tagsOf (item: bio) has (name, tag)
       form a record of
         name
@@ -377,6 +401,19 @@ Former "the card of (bio)" — inputs (bio); bindings (tag, name, broader, direc
             direct
             name: broaderName
             tag: broader
+```
+
+### the font and palette overrides of (bio)
+
+Authored path: `Bios.Keeping.LookOverrides`.
+- Covered by [Bios](../design/compositions/Bios.md), line 20.
+
+```former
+Former "the font and palette overrides of (bio)" — inputs (bio); bindings (font, palette); promises exactly one record — forms:
+  a record of
+    where Templating._overrides (item: bio) has (font, palette)
+    font
+    palette
 ```
 
 ### the people open to new friends matching (tags) for (viewer)
@@ -448,8 +485,8 @@ Former "the templates" — inputs (); bindings (template, name, layout, font, pa
 ### Bios.Discarding.DiscardBio
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/discard", requestId, session)
@@ -460,8 +497,8 @@ then
 ### Bios.Discarding.DiscardBio:displayed-bio#2
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Discarding.DiscardBio
@@ -476,8 +513,8 @@ then
 ### Bios.Discarding.DiscardBio:displayed-bio#3
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Publishing.unpublish (publisher: user), asked by Bios.Discarding.DiscardBio:displayed-bio#2
@@ -490,8 +527,8 @@ then
 ### Bios.Discarding.DiscardBio:displayed-bio#4
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Drafting.discard (draft: bio), asked by Bios.Discarding.DiscardBio:displayed-bio#3
@@ -504,8 +541,8 @@ then
 ### Bios.Discarding.DiscardBio:not-own-bio#2
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Discarding.DiscardBio
@@ -519,8 +556,8 @@ then
 ### Bios.Discarding.DiscardBio:undisplayed-bio#2
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Discarding.DiscardBio
@@ -535,8 +572,8 @@ then
 ### Bios.Discarding.DiscardBio:undisplayed-bio#3
 
 Authored path: `Bios.Discarding.DiscardBio`.
-- Covered by [Bios](../design/compositions/Bios.md), line 27.
-- Covered by [Bios](../design/compositions/Bios.md), line 35.
+- Covered by [Bios](../design/compositions/Bios.md), line 38.
+- Covered by [Bios](../design/compositions/Bios.md), line 47.
 
 ```reaction
 when Drafting.discard (draft: bio), asked by Bios.Discarding.DiscardBio:undisplayed-bio#2
@@ -546,10 +583,21 @@ then
   RequestBoundary.respond (bio, requestId)
 ```
 
+### Bios.Discarding.DiscardedBioLosesItsDetails
+
+Authored path: `Bios.Discarding.DiscardedBioLosesItsDetails`.
+- Covered by [Bios](../design/compositions/Bios.md), line 43.
+
+```reaction
+when Drafting.discard (draft: bio)
+then
+  Describing.remove (item: bio)
+```
+
 ### Bios.Discarding.DiscardedBioLosesItsLook
 
 Authored path: `Bios.Discarding.DiscardedBioLosesItsLook`.
-- Covered by [Bios](../design/compositions/Bios.md), line 31.
+- Covered by [Bios](../design/compositions/Bios.md), line 42.
 
 ```reaction
 when Drafting.discard (draft: bio)
@@ -562,7 +610,7 @@ then
 ### Bios.Discarding.DiscardedBioLosesItsTags
 
 Authored path: `Bios.Discarding.DiscardedBioLosesItsTags`.
-- Covered by [Bios](../design/compositions/Bios.md), line 30.
+- Covered by [Bios](../design/compositions/Bios.md), line 41.
 
 ```reaction
 when Drafting.discard (draft: bio)
@@ -576,7 +624,7 @@ then
 
 Authored path: `Bios.Keeping.ListBios`.
 - Covered by [Bios](../design/compositions/Bios.md), line 11.
-- Covered by [Bios](../design/compositions/Bios.md), line 21.
+- Covered by [Bios](../design/compositions/Bios.md), line 31.
 
 ```reaction
 when RequestBoundary.request (path: "/bios/list", requestId, session)
@@ -588,7 +636,7 @@ then
 
 Authored path: `Bios.Keeping.ListBios`.
 - Covered by [Bios](../design/compositions/Bios.md), line 11.
-- Covered by [Bios](../design/compositions/Bios.md), line 21.
+- Covered by [Bios](../design/compositions/Bios.md), line 31.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.ListBios
@@ -602,7 +650,7 @@ then
 
 Authored path: `Bios.Keeping.RenameBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 14.
-- Covered by [Bios](../design/compositions/Bios.md), line 24.
+- Covered by [Bios](../design/compositions/Bios.md), line 34.
 
 ```reaction
 when RequestBoundary.request (bio, name, path: "/bios/rename", requestId, session)
@@ -614,7 +662,7 @@ then
 
 Authored path: `Bios.Keeping.RenameBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 14.
-- Covered by [Bios](../design/compositions/Bios.md), line 24.
+- Covered by [Bios](../design/compositions/Bios.md), line 34.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.RenameBio
@@ -629,7 +677,7 @@ then
 
 Authored path: `Bios.Keeping.RenameBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 14.
-- Covered by [Bios](../design/compositions/Bios.md), line 24.
+- Covered by [Bios](../design/compositions/Bios.md), line 34.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.RenameBio
@@ -644,7 +692,7 @@ then
 
 Authored path: `Bios.Keeping.RenameBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 14.
-- Covered by [Bios](../design/compositions/Bios.md), line 24.
+- Covered by [Bios](../design/compositions/Bios.md), line 34.
 
 ```reaction
 when Drafting.rename (draft: bio, name), asked by Bios.Keeping.RenameBio:own-bio#2
@@ -654,11 +702,67 @@ then
   RequestBoundary.respond (bio, requestId)
 ```
 
+### Bios.Keeping.SetBioDetails
+
+Authored path: `Bios.Keeping.SetBioDetails`.
+- Covered by [Bios](../design/compositions/Bios.md), line 25.
+- Covered by [Bios](../design/compositions/Bios.md), line 35.
+
+```reaction
+when RequestBoundary.request (bio, displayName, note, path: "/bios/details", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### Bios.Keeping.SetBioDetails:not-own-bio#2
+
+Authored path: `Bios.Keeping.SetBioDetails`.
+- Covered by [Bios](../design/compositions/Bios.md), line 25.
+- Covered by [Bios](../design/compositions/Bios.md), line 35.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by Bios.Keeping.SetBioDetails
+where
+  earlier, RequestBoundary.request (bio, displayName, note, path: "/bios/details", requestId, session)
+  no view "(bio) is one of (user)'s saved bios" with (bio, user)
+then
+  RequestBoundary.respond (error: "BIO_NOT_FOUND", requestId)
+```
+
+### Bios.Keeping.SetBioDetails:own-bio#2
+
+Authored path: `Bios.Keeping.SetBioDetails`.
+- Covered by [Bios](../design/compositions/Bios.md), line 25.
+- Covered by [Bios](../design/compositions/Bios.md), line 35.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by Bios.Keeping.SetBioDetails
+where
+  earlier, RequestBoundary.request (bio, displayName, note, path: "/bios/details", requestId, session)
+  view "(bio) is one of (user)'s saved bios" with (bio, user)
+then
+  Describing.set (item: bio, name: displayName, text: note)
+```
+
+### Bios.Keeping.SetBioDetails:own-bio#3
+
+Authored path: `Bios.Keeping.SetBioDetails`.
+- Covered by [Bios](../design/compositions/Bios.md), line 25.
+- Covered by [Bios](../design/compositions/Bios.md), line 35.
+
+```reaction
+when Describing.set (item: bio, name: displayName, text: note), asked by Bios.Keeping.SetBioDetails:own-bio#2
+where
+  earlier, RequestBoundary.request (bio, displayName, note, path: "/bios/details", requestId, session)
+then
+  RequestBoundary.respond (bio, card: former "the card of (bio)" with (bio), requestId)
+```
+
 ### Bios.Keeping.StartBio
 
 Authored path: `Bios.Keeping.StartBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 13.
-- Covered by [Bios](../design/compositions/Bios.md), line 22.
+- Covered by [Bios](../design/compositions/Bios.md), line 32.
 
 ```reaction
 when RequestBoundary.request (name, path: "/bios/start", requestId, session)
@@ -670,7 +774,7 @@ then
 
 Authored path: `Bios.Keeping.StartBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 13.
-- Covered by [Bios](../design/compositions/Bios.md), line 22.
+- Covered by [Bios](../design/compositions/Bios.md), line 32.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.StartBio
@@ -684,7 +788,7 @@ then
 
 Authored path: `Bios.Keeping.StartBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 13.
-- Covered by [Bios](../design/compositions/Bios.md), line 22.
+- Covered by [Bios](../design/compositions/Bios.md), line 32.
 
 ```reaction
 when Drafting.start (name, owner: user, draft: bio), asked by Bios.Keeping.StartBio#2
@@ -698,7 +802,7 @@ then
 
 Authored path: `Bios.Keeping.ViewBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 15.
-- Covered by [Bios](../design/compositions/Bios.md), line 23.
+- Covered by [Bios](../design/compositions/Bios.md), line 33.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/view", requestId, session)
@@ -710,7 +814,7 @@ then
 
 Authored path: `Bios.Keeping.ViewBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 15.
-- Covered by [Bios](../design/compositions/Bios.md), line 23.
+- Covered by [Bios](../design/compositions/Bios.md), line 33.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.ViewBio
@@ -725,7 +829,7 @@ then
 
 Authored path: `Bios.Keeping.ViewBio`.
 - Covered by [Bios](../design/compositions/Bios.md), line 15.
-- Covered by [Bios](../design/compositions/Bios.md), line 23.
+- Covered by [Bios](../design/compositions/Bios.md), line 33.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Keeping.ViewBio
@@ -734,14 +838,14 @@ where
   view "(bio) is one of (user)'s saved bios" with (bio, user)
   Drafting._get (draft: bio) has (name)
 then
-  RequestBoundary.respond (bio, card: former "the card of (bio)" with (bio), name, requestId)
+  RequestBoundary.respond (bio, card: former "the card of (bio)" with (bio), name, overrides: former "the font and palette overrides of (bio)" with (bio), requestId)
 ```
 
 ### Bios.Styling.ChooseFont
 
 Authored path: `Bios.Styling.ChooseFont`.
-- Covered by [Bios](../design/compositions/Bios.md), line 51.
-- Covered by [Bios](../design/compositions/Bios.md), line 59.
+- Covered by [Bios](../design/compositions/Bios.md), line 63.
+- Covered by [Bios](../design/compositions/Bios.md), line 71.
 
 ```reaction
 when RequestBoundary.request (bio, font, path: "/bios/look/font", requestId, session)
@@ -752,8 +856,8 @@ then
 ### Bios.Styling.ChooseFont:not-own-bio#2
 
 Authored path: `Bios.Styling.ChooseFont`.
-- Covered by [Bios](../design/compositions/Bios.md), line 51.
-- Covered by [Bios](../design/compositions/Bios.md), line 59.
+- Covered by [Bios](../design/compositions/Bios.md), line 63.
+- Covered by [Bios](../design/compositions/Bios.md), line 71.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChooseFont
@@ -767,8 +871,8 @@ then
 ### Bios.Styling.ChooseFont:own-bio#2
 
 Authored path: `Bios.Styling.ChooseFont`.
-- Covered by [Bios](../design/compositions/Bios.md), line 51.
-- Covered by [Bios](../design/compositions/Bios.md), line 59.
+- Covered by [Bios](../design/compositions/Bios.md), line 63.
+- Covered by [Bios](../design/compositions/Bios.md), line 71.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChooseFont
@@ -782,8 +886,8 @@ then
 ### Bios.Styling.ChooseFont:own-bio#3
 
 Authored path: `Bios.Styling.ChooseFont`.
-- Covered by [Bios](../design/compositions/Bios.md), line 51.
-- Covered by [Bios](../design/compositions/Bios.md), line 59.
+- Covered by [Bios](../design/compositions/Bios.md), line 63.
+- Covered by [Bios](../design/compositions/Bios.md), line 71.
 
 ```reaction
 when Templating.setFont (font, item: bio), asked by Bios.Styling.ChooseFont:own-bio#2
@@ -796,8 +900,8 @@ then
 ### Bios.Styling.ChoosePalette
 
 Authored path: `Bios.Styling.ChoosePalette`.
-- Covered by [Bios](../design/compositions/Bios.md), line 52.
-- Covered by [Bios](../design/compositions/Bios.md), line 60.
+- Covered by [Bios](../design/compositions/Bios.md), line 64.
+- Covered by [Bios](../design/compositions/Bios.md), line 72.
 
 ```reaction
 when RequestBoundary.request (bio, palette, path: "/bios/look/palette", requestId, session)
@@ -808,8 +912,8 @@ then
 ### Bios.Styling.ChoosePalette:not-own-bio#2
 
 Authored path: `Bios.Styling.ChoosePalette`.
-- Covered by [Bios](../design/compositions/Bios.md), line 52.
-- Covered by [Bios](../design/compositions/Bios.md), line 60.
+- Covered by [Bios](../design/compositions/Bios.md), line 64.
+- Covered by [Bios](../design/compositions/Bios.md), line 72.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChoosePalette
@@ -823,8 +927,8 @@ then
 ### Bios.Styling.ChoosePalette:own-bio#2
 
 Authored path: `Bios.Styling.ChoosePalette`.
-- Covered by [Bios](../design/compositions/Bios.md), line 52.
-- Covered by [Bios](../design/compositions/Bios.md), line 60.
+- Covered by [Bios](../design/compositions/Bios.md), line 64.
+- Covered by [Bios](../design/compositions/Bios.md), line 72.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChoosePalette
@@ -838,8 +942,8 @@ then
 ### Bios.Styling.ChoosePalette:own-bio#3
 
 Authored path: `Bios.Styling.ChoosePalette`.
-- Covered by [Bios](../design/compositions/Bios.md), line 52.
-- Covered by [Bios](../design/compositions/Bios.md), line 60.
+- Covered by [Bios](../design/compositions/Bios.md), line 64.
+- Covered by [Bios](../design/compositions/Bios.md), line 72.
 
 ```reaction
 when Templating.setPalette (item: bio, palette), asked by Bios.Styling.ChoosePalette:own-bio#2
@@ -852,8 +956,8 @@ then
 ### Bios.Styling.ChooseTemplate
 
 Authored path: `Bios.Styling.ChooseTemplate`.
-- Covered by [Bios](../design/compositions/Bios.md), line 50.
-- Covered by [Bios](../design/compositions/Bios.md), line 58.
+- Covered by [Bios](../design/compositions/Bios.md), line 62.
+- Covered by [Bios](../design/compositions/Bios.md), line 70.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/look/template", requestId, session, template)
@@ -864,8 +968,8 @@ then
 ### Bios.Styling.ChooseTemplate:not-own-bio#2
 
 Authored path: `Bios.Styling.ChooseTemplate`.
-- Covered by [Bios](../design/compositions/Bios.md), line 50.
-- Covered by [Bios](../design/compositions/Bios.md), line 58.
+- Covered by [Bios](../design/compositions/Bios.md), line 62.
+- Covered by [Bios](../design/compositions/Bios.md), line 70.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChooseTemplate
@@ -879,8 +983,8 @@ then
 ### Bios.Styling.ChooseTemplate:own-bio#2
 
 Authored path: `Bios.Styling.ChooseTemplate`.
-- Covered by [Bios](../design/compositions/Bios.md), line 50.
-- Covered by [Bios](../design/compositions/Bios.md), line 58.
+- Covered by [Bios](../design/compositions/Bios.md), line 62.
+- Covered by [Bios](../design/compositions/Bios.md), line 70.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ChooseTemplate
@@ -894,8 +998,8 @@ then
 ### Bios.Styling.ChooseTemplate:own-bio#3
 
 Authored path: `Bios.Styling.ChooseTemplate`.
-- Covered by [Bios](../design/compositions/Bios.md), line 50.
-- Covered by [Bios](../design/compositions/Bios.md), line 58.
+- Covered by [Bios](../design/compositions/Bios.md), line 62.
+- Covered by [Bios](../design/compositions/Bios.md), line 70.
 
 ```reaction
 when Templating.apply (item: bio, template), asked by Bios.Styling.ChooseTemplate:own-bio#2
@@ -908,8 +1012,8 @@ then
 ### Bios.Styling.ResetLook
 
 Authored path: `Bios.Styling.ResetLook`.
-- Covered by [Bios](../design/compositions/Bios.md), line 54.
-- Covered by [Bios](../design/compositions/Bios.md), line 61.
+- Covered by [Bios](../design/compositions/Bios.md), line 66.
+- Covered by [Bios](../design/compositions/Bios.md), line 73.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/look/reset", requestId, session)
@@ -920,8 +1024,8 @@ then
 ### Bios.Styling.ResetLook:not-own-bio#2
 
 Authored path: `Bios.Styling.ResetLook`.
-- Covered by [Bios](../design/compositions/Bios.md), line 54.
-- Covered by [Bios](../design/compositions/Bios.md), line 61.
+- Covered by [Bios](../design/compositions/Bios.md), line 66.
+- Covered by [Bios](../design/compositions/Bios.md), line 73.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ResetLook
@@ -935,8 +1039,8 @@ then
 ### Bios.Styling.ResetLook:own-bio#2
 
 Authored path: `Bios.Styling.ResetLook`.
-- Covered by [Bios](../design/compositions/Bios.md), line 54.
-- Covered by [Bios](../design/compositions/Bios.md), line 61.
+- Covered by [Bios](../design/compositions/Bios.md), line 66.
+- Covered by [Bios](../design/compositions/Bios.md), line 73.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Styling.ResetLook
@@ -950,8 +1054,8 @@ then
 ### Bios.Styling.ResetLook:own-bio#3
 
 Authored path: `Bios.Styling.ResetLook`.
-- Covered by [Bios](../design/compositions/Bios.md), line 54.
-- Covered by [Bios](../design/compositions/Bios.md), line 61.
+- Covered by [Bios](../design/compositions/Bios.md), line 66.
+- Covered by [Bios](../design/compositions/Bios.md), line 73.
 
 ```reaction
 when Templating.reset (item: bio), asked by Bios.Styling.ResetLook:own-bio#2
@@ -964,8 +1068,8 @@ then
 ### Bios.Tagging.AddTag
 
 Authored path: `Bios.Tagging.AddTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 38.
-- Covered by [Bios](../design/compositions/Bios.md), line 45.
+- Covered by [Bios](../design/compositions/Bios.md), line 50.
+- Covered by [Bios](../design/compositions/Bios.md), line 57.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/tags/add", requestId, session, tag)
@@ -976,8 +1080,8 @@ then
 ### Bios.Tagging.AddTag:not-own-bio#2
 
 Authored path: `Bios.Tagging.AddTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 38.
-- Covered by [Bios](../design/compositions/Bios.md), line 45.
+- Covered by [Bios](../design/compositions/Bios.md), line 50.
+- Covered by [Bios](../design/compositions/Bios.md), line 57.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Tagging.AddTag
@@ -991,8 +1095,8 @@ then
 ### Bios.Tagging.AddTag:own-bio#2
 
 Authored path: `Bios.Tagging.AddTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 38.
-- Covered by [Bios](../design/compositions/Bios.md), line 45.
+- Covered by [Bios](../design/compositions/Bios.md), line 50.
+- Covered by [Bios](../design/compositions/Bios.md), line 57.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Tagging.AddTag
@@ -1007,8 +1111,8 @@ then
 ### Bios.Tagging.AddTag:own-bio#3
 
 Authored path: `Bios.Tagging.AddTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 38.
-- Covered by [Bios](../design/compositions/Bios.md), line 45.
+- Covered by [Bios](../design/compositions/Bios.md), line 50.
+- Covered by [Bios](../design/compositions/Bios.md), line 57.
 
 ```reaction
 when Tagging.add (item: bio, tag: main), asked by Bios.Tagging.AddTag:own-bio#2
@@ -1021,8 +1125,8 @@ then
 ### Bios.Tagging.RemoveTag
 
 Authored path: `Bios.Tagging.RemoveTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 39.
-- Covered by [Bios](../design/compositions/Bios.md), line 46.
+- Covered by [Bios](../design/compositions/Bios.md), line 51.
+- Covered by [Bios](../design/compositions/Bios.md), line 58.
 
 ```reaction
 when RequestBoundary.request (bio, path: "/bios/tags/remove", requestId, session, tag)
@@ -1033,8 +1137,8 @@ then
 ### Bios.Tagging.RemoveTag:not-own-bio#2
 
 Authored path: `Bios.Tagging.RemoveTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 39.
-- Covered by [Bios](../design/compositions/Bios.md), line 46.
+- Covered by [Bios](../design/compositions/Bios.md), line 51.
+- Covered by [Bios](../design/compositions/Bios.md), line 58.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Tagging.RemoveTag
@@ -1048,8 +1152,8 @@ then
 ### Bios.Tagging.RemoveTag:own-bio#2
 
 Authored path: `Bios.Tagging.RemoveTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 39.
-- Covered by [Bios](../design/compositions/Bios.md), line 46.
+- Covered by [Bios](../design/compositions/Bios.md), line 51.
+- Covered by [Bios](../design/compositions/Bios.md), line 58.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by Bios.Tagging.RemoveTag
@@ -1064,8 +1168,8 @@ then
 ### Bios.Tagging.RemoveTag:own-bio#3
 
 Authored path: `Bios.Tagging.RemoveTag`.
-- Covered by [Bios](../design/compositions/Bios.md), line 39.
-- Covered by [Bios](../design/compositions/Bios.md), line 46.
+- Covered by [Bios](../design/compositions/Bios.md), line 51.
+- Covered by [Bios](../design/compositions/Bios.md), line 58.
 
 ```reaction
 when Tagging.remove (item: bio, tag: main), asked by Bios.Tagging.RemoveTag:own-bio#2
@@ -1588,6 +1692,7 @@ not listed here have no explicit input contract.
 - `/auth/register` — requires `username`, `password`
 - `/auth/sign-in` — requires `username`, `password`
 - `/auth/sign-out` — requires `session`
+- `/bios/details` — requires `session`, `bio`, `displayName`, `note`
 - `/bios/discard` — requires `session`, `bio`
 - `/bios/list` — requires `session`
 - `/bios/look/font` — requires `session`, `bio`, `font`

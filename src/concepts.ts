@@ -2,6 +2,7 @@ import { conceptSet } from "@mit-sdg/sync-engine/assembly";
 import { searchedTagAt, searchedTags } from "./computations.ts";
 import { authenticating } from "./concepts/Authenticating/registry.ts";
 import { drafting } from "./concepts/Drafting/registry.ts";
+import { describing } from "./concepts/Describing/registry.ts";
 import { grouping } from "./concepts/Grouping/registry.ts";
 import { publishing } from "./concepts/Publishing/registry.ts";
 import { sessioning } from "./concepts/Sessioning/registry.ts";
@@ -18,6 +19,7 @@ export const applicationConceptSet = conceptSet({
   Authenticating: authenticating,
   Sessioning: sessioning,
   Drafting: drafting,
+  Describing: describing,
   Tagging: tagging,
   Synonymizing: synonymizing,
   Grouping: grouping,
@@ -32,6 +34,7 @@ export const registrations = [
   authenticating,
   sessioning,
   drafting,
+  describing,
   tagging,
   synonymizing,
   grouping,

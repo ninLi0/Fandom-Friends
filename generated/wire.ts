@@ -56,6 +56,37 @@ export type FandomFriendsWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
+  "/bios/details": {
+    input: {
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "displayName": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["name"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["text"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>>;
+      "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
+        "look": {
+          "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
+          "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
+          "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
+          "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
+        };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
+        "tags": {
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
+          "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
+          "under": {
+            "direct": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Grouping"]["_above"]>>>, ["direct"]>>;
+            "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_get"]>>>, ["name"]>>;
+            "tag": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_get"]>[0], ["tag"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Grouping"]["_above"]>>>, ["broader"]>]>>;
+          }[];
+        }[];
+      };
+    };
+    error: { error: AppWideError | "BIO_NOT_FOUND" | "INVALID_DESCRIPTION_NAME" | "INVALID_DESCRIPTION_TEXT" | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
   "/bios/discard": {
     input: {
       "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Publishing"]["_publisherOf"]>[0], ["item"]>]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["discard"]>[0], ["draft"]>]>>;
@@ -82,19 +113,21 @@ export type FandomFriendsWire = {
   };
   "/bios/look/font": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "font": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["font"]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -110,19 +143,21 @@ export type FandomFriendsWire = {
   };
   "/bios/look/palette": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "palette": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["palette"]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -138,18 +173,20 @@ export type FandomFriendsWire = {
   };
   "/bios/look/reset": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -165,19 +202,21 @@ export type FandomFriendsWire = {
   };
   "/bios/look/template": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "template": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["template"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -214,19 +253,21 @@ export type FandomFriendsWire = {
   };
   "/bios/tags/add": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "tag": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Synonymizing"]["_canonical"]>[0], ["item"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -242,19 +283,21 @@ export type FandomFriendsWire = {
   };
   "/bios/tags/remove": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "tag": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Synonymizing"]["_canonical"]>[0], ["item"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -270,18 +313,20 @@ export type FandomFriendsWire = {
   };
   "/bios/view": {
     input: {
-      "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>>;
+      "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>[0], ["item"]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -293,6 +338,10 @@ export type FandomFriendsWire = {
         }[];
       };
       "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>>>, ["name"]>>;
+      "overrides": {
+        "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>>>, ["font"]>>;
+        "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>>>, ["palette"]>>;
+      };
     };
     error: { error: AppWideError | "BIO_NOT_FOUND" | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
@@ -302,12 +351,14 @@ export type FandomFriendsWire = {
     };
     output: {
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -330,12 +381,14 @@ export type FandomFriendsWire = {
     output: {
       "people": ({
         "card": {
+          "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
           "look": {
             "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
             "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
             "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
             "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
           };
+          "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
           "tags": {
             "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
             "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -488,6 +541,36 @@ export type FandomFriendsHttp = {
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
+  "/bios/details": {
+    input: {
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "displayName": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["name"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["text"]>>;
+    };
+    output: {
+      "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["set"]>[0], ["item"]>>;
+      "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
+        "look": {
+          "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
+          "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
+          "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
+          "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
+        };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
+        "tags": {
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
+          "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
+          "under": {
+            "direct": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Grouping"]["_above"]>>>, ["direct"]>>;
+            "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_get"]>>>, ["name"]>>;
+            "tag": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_get"]>[0], ["tag"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Grouping"]["_above"]>>>, ["broader"]>]>>;
+          }[];
+        }[];
+      };
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/bios/discard": {
     input: {
       "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Publishing"]["_publisherOf"]>[0], ["item"]>]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["discard"]>[0], ["draft"]>]>>;
@@ -511,18 +594,20 @@ export type FandomFriendsHttp = {
   };
   "/bios/look/font": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "font": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["font"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setFont"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -538,18 +623,20 @@ export type FandomFriendsHttp = {
   };
   "/bios/look/palette": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "palette": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["palette"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["setPalette"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -565,17 +652,19 @@ export type FandomFriendsHttp = {
   };
   "/bios/look/reset": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["reset"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -591,18 +680,20 @@ export type FandomFriendsHttp = {
   };
   "/bios/look/template": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "template": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["template"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["apply"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -637,18 +728,20 @@ export type FandomFriendsHttp = {
   };
   "/bios/tags/add": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "tag": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Synonymizing"]["_canonical"]>[0], ["item"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["add"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -664,18 +757,20 @@ export type FandomFriendsHttp = {
   };
   "/bios/tags/remove": {
     input: {
-      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
+      "bio": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>]>>;
       "tag": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Synonymizing"]["_canonical"]>[0], ["item"]>>;
     };
     output: {
       "bio": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["remove"]>[0], ["item"]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -691,17 +786,19 @@ export type FandomFriendsHttp = {
   };
   "/bios/view": {
     input: {
-      "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>]>>;
+      "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>[0], ["item"]>]>>;
     };
     output: {
       "bio": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>[0], ["draft"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Drafting"]["_owner"]>[0], ["draft"]>]>>;
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -713,6 +810,10 @@ export type FandomFriendsHttp = {
         }[];
       };
       "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Drafting"]["_get"]>>>, ["name"]>>;
+      "overrides": {
+        "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>>>, ["font"]>>;
+        "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_overrides"]>>>, ["palette"]>>;
+      };
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
@@ -722,12 +823,14 @@ export type FandomFriendsHttp = {
     };
     output: {
       "card": {
+        "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
         "look": {
           "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
           "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
           "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
           "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
         };
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
         "tags": {
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
           "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;
@@ -749,12 +852,14 @@ export type FandomFriendsHttp = {
     output: {
       "people": ({
         "card": {
+          "displayName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["name"]>>;
           "look": {
             "font": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["font"]>> | null;
             "layout": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["layout"]>> | null;
             "palette": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["palette"]>> | null;
             "template": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Templating"]["_look"]>>>, ["template"]>> | null;
           };
+          "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Describing"]["_get"]>>>, ["text"]>>;
           "tags": {
             "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["name"]>>;
             "tag": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Tagging"]["_tagsOf"]>>>, ["tag"]>>;

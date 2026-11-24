@@ -381,7 +381,7 @@ describe("the starter vocabulary the server loads", () => {
     expect(await suggested(app, "フリーレン")).toEqual(["フリーレン", "葬送のフリーレン"]);
   });
 
-  test("three templates are listed and Classic is the default", async () => {
+  test("alpha and MVP templates are listed and Classic remains the default", async () => {
     const app = await startApp(database(), { tags: starterTags, templates: starterTemplates });
 
     const { status, body } = await app.visitor("/templates/list", {});
@@ -389,8 +389,11 @@ describe("the starter vocabulary the server loads", () => {
     expect(status).toBe(200);
     expect(body.templates.map((template: { name: string; default: boolean }) => [template.name, template.default])).toEqual([
       ["Classic", true],
+      ["Convention poster", false],
       ["Favorites first", false],
+      ["Quiet notes", false],
       ["Side by side", false],
+      ["Side by side (MVP)", false],
     ]);
   });
 });

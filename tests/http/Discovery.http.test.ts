@@ -495,6 +495,8 @@ describe("what a result shows", () => {
 
     expect(body.people).toHaveLength(1);
     expect(withBroaderTagsInNameOrder(body.people[0].card)).toEqual({
+      displayName: "",
+      note: "",
       tags: [
         { tag: await app.tag("Dungeon Meshi"), name: "Dungeon Meshi", under: [] },
         {
@@ -553,7 +555,7 @@ describe("what a result shows", () => {
     expect(Object.keys(body.people[0]).sort()).toEqual(["card", "handle", "listedOn"]);
     expect(body.people[0].handle).toBe("moon-rabbit");
     expect(body.people[0].listedOn).toBe("2026-11-23T12:07:00.000Z");
-    expect(Object.keys(body.people[0].card).sort()).toEqual(["look", "tags"]);
+    expect(Object.keys(body.people[0].card).sort()).toEqual(["displayName", "look", "note", "tags"]);
 
     const text = JSON.stringify(body).toLowerCase();
     expect(text).not.toContain("quietowl");

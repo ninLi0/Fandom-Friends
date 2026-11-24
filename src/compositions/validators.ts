@@ -89,9 +89,9 @@ function rows(value: unknown, accepts: (row: Record<string, unknown>) => boolean
   return Array.isArray(value) && value.every((row) => record(row) && accepts(row));
 }
 
-/** A card: the bio's tags with what each lies under, and the look in effect (blank when no template exists). */
+/** A card: public details, tags with what each lies under, and the look in effect. */
 export function validCard(value: unknown): boolean {
-  if (!record(value) || !hasOnly(value, ["tags", "look"])) return false;
+  if (!record(value) || !hasOnly(value, ["displayName", "note", "tags", "look"])) return false;
   const tagsValid = rows(
     value.tags,
     (tag) =>
@@ -109,6 +109,8 @@ export function validCard(value: unknown): boolean {
   );
   const look = value.look;
   return (
+    typeof value.displayName === "string" && value.displayName.length <= 60 &&
+    typeof value.note === "string" && value.note.length <= 280 &&
     tagsValid &&
     record(look) &&
     hasOnly(look, ["template", "layout", "font", "palette"]) &&
@@ -135,6 +137,14 @@ export const bioRenameInput = validator(
   (value) =>
     hasOnly(value, ["session", "bio", "name"]) && fromCookie(value) && identity(value.bio) && words(value.name),
   "bio must be a bio identity, name must be text, and session must come from the cookie",
+);
+
+/** The concept checks the public text limits; this bound keeps malformed requests small. */
+export const bioDetailsInput = validator(
+  (value) => hasOnly(value, ["session", "bio", "displayName", "note"]) && fromCookie(value) && identity(value.bio) &&
+    typeof value.displayName === "string" && value.displayName.length <= 1_000 &&
+    typeof value.note === "string" && value.note.length <= 1_000,
+  "bio must be an identity, public details must be text, and session must come from the cookie",
 );
 
 export const bioTagInput = validator(
@@ -202,9 +212,13 @@ export const bioOutput = validator(
 );
 
 export const ownBioOutput = validator(
-  (value) =>
-    hasOnly(value, ["bio", "name", "card"]) && isString(value.bio) && isString(value.name) && validCard(value.card),
-  "response must contain a bio, its name, and its card",
+  (value) => {
+    const overrides = value.overrides;
+    return hasOnly(value, ["bio", "name", "card", "overrides"]) && isString(value.bio) && isString(value.name) && validCard(value.card) &&
+      record(overrides) && hasOnly(overrides, ["font", "palette"]) &&
+      nullable(overrides.font, isString) && nullable(overrides.palette, isString);
+  },
+  "response must contain a bio, its name, its card, and its font and palette overrides",
 );
 
 export const bioCardOutput = validator(

@@ -1,403 +1,328 @@
-/** The MVP editor, adapted to the alpha's typed, per-change API. */
-import { fonts, palettes } from "../../seed/offered.ts";
-import { api, codeOf, reason, refused, type Card, type SavedBio, type Sharing, type Template } from "../api.ts";
-import { drawCard, groupCardTags } from "../card.ts";
-import { button, fill, h } from "../dom.ts";
+/** The local MVP editor workflow, connected to the alpha's concept API. */
+import { tags as seedTags } from "../../seed/vocabulary.ts";
+import { interestsGroup } from "../../seed/offered.ts";
+import { api, codeOf, reason, refused, type SavedBio, type Suggestion, type Template } from "../api.ts";
 import type { Page } from "../client.ts";
-import { tagPicker } from "../tag-picker.ts";
+import { editorView } from "../editor-view.ts";
+import { effectiveLook, escapeHtml } from "../mvp-card.ts";
+import type { Bio, Catalog, Category, Draft, Publication, Tag, User } from "../mvp-types.ts";
 
-type Bio = SavedBio["bio"];
-type OpenBio = { bio: Bio; name: string; card: Card };
-type Success<Answer> = Exclude<Answer, { error: unknown }>;
+type BioID = SavedBio["bio"];
+type TagID = Suggestion["tag"];
+type TemplateID = Template["template"];
+type Viewed = Exclude<Awaited<ReturnType<typeof api.bios.view>>, { error: unknown }>;
 
-const editorTagLabels = { fandom: "Fandoms", character: "Characters", pairing: "Pairings", interest: "Interests & activities" };
+/** Raise the same readable refusal the alpha API supplies. */
+async function answer<Result extends object>(request: Promise<Result>): Promise<Exclude<Result, { error: unknown }>> {
+  const result = await request;
+  if (refused(result)) throw new Error(reason(result));
+  return result as Exclude<Result, { error: unknown }>;
+}
 
-export const editorPage: Page = ({ say, go }) => {
-  let bios: SavedBio[] = [];
-  let templates: Template[] = [];
-  let sharing: Sharing = { handle: null, displayed: null, open: null };
-  let current: OpenBio | undefined;
+export const editorPage: Page = (context) => {
+  const root = document.createElement("div");
+  root.innerHTML = '<div class="page editor-page loading-state" role="status"><span class="spinner" aria-hidden="true"></span>Getting things ready…</div>';
+  const lifetime = new AbortController();
+  context.onLeave(() => lifetime.abort());
+  let catalog: Catalog;
+  const user: User = { id: "", username: context.username ?? "", handle: null };
+  let bios: Bio[] = [];
+  let publication: Publication | null = null;
+  let draft: Draft | null = null;
+  let dirty = false;
   let busy = false;
-  let creating = false;
-  let showCard = () => {};
+  let editorQuery = "";
+  let pendingSaveID: string | null = null;
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  const toastRegion = document.createElement("div");
+  toastRegion.className = "mvp-editor-toast";
+  toastRegion.setAttribute("aria-live", "polite");
+  toastRegion.setAttribute("aria-atomic", "true");
+  document.body.append(toastRegion);
+  context.onLeave(() => { clearTimeout(toastTimer); toastRegion.remove(); });
 
-  const list = h("div", { className: "saved-toolbar" });
-  const createArea = h("div", { className: "bio-create", hidden: true });
-  const editing = h("div", { className: "editing" });
-  const preview = h("div", { className: "preview-stage" });
-  const share = h("section", { className: "panel publish-panel" });
-  const saved = h("span", { className: "save-status", role: "status" });
-  const recovery = h("div", { className: "notice", hidden: true },
-    h("p", { textContent: "Reload your saved bios to check the latest state." }),
-    button("Reload saved bios", () => run(() => loadAll(), false), { className: "button secondary small" }),
-  );
-  const root = h("section", { className: "editor-page" },
-    h("div", { className: "editor-layout" },
-      h("div", { className: "editor-main" }, list, createArea, editing),
-      h("aside", { className: "editor-aside", ariaLabel: "Bio preview and sharing" },
-        h("div", { className: "preview-label", textContent: "LIVE PREVIEW" }), preview,
-        h("p", { className: "preview-footer", textContent: "Only one saved bio is public at a time. The rest stay yours." }), share,
-      ),
-    ),
-    recovery,
-  );
-
-  function report(message: string) {
-    if (root.isConnected) say(message);
+  function toast(message: string, error = false, duration = 6000) {
+    if (!root.isConnected) return;
+    clearTimeout(toastTimer);
+    toastRegion.innerHTML = `<div class="toast ${error ? "error" : "success"}" role="status"><span>${escapeHtml(message)}</span><button class="toast-close" aria-label="Dismiss notification">×</button></div>`;
+    toastRegion.querySelector("button")?.addEventListener("click", () => { toastRegion.innerHTML = ""; });
+    toastTimer = setTimeout(() => { toastRegion.innerHTML = ""; }, duration);
   }
 
-  /** Serialize requests so an older response cannot overwrite a newer edit. */
-  async function run(task: () => Promise<void>, saving = true) {
-    if (busy) return false;
-    const focused = document.activeElement instanceof HTMLElement && root.contains(document.activeElement) ? document.activeElement : null;
-    busy = true;
-    root.inert = true;
-    root.setAttribute("aria-busy", "true");
-    report("");
-    saved.textContent = saving ? "Saving…" : "Loading…";
-    try {
-      await task();
-      saved.textContent = "";
-      return true;
-    } catch (error) {
-      saved.textContent = saving ? "Could not complete this update. Please try again." : "Could not load your bios.";
-      report(error instanceof Error ? error.message : "That did not work. Try again.");
-      recovery.hidden = false;
-      showCard();
-      // Roll back the optimistic switch without losing a handle someone has typed.
-      const open = share.querySelector<HTMLInputElement>("#open-to-friends");
-      if (open) open.checked = sharing.open === true;
-      return false;
-    } finally {
-      root.inert = false;
-      root.removeAttribute("aria-busy");
-      busy = false;
-      // The button helper enables its button after the action resolves.
-      requestAnimationFrame(() => {
-        if (root.isConnected && focused?.isConnected && document.activeElement === document.body) focused.focus({ preventScroll: true });
-      });
-    }
+  const mayDiscard = () => !dirty || window.confirm("You have unsaved changes. Leave without saving them?");
+  context.beforeLeave(() => !busy && mayDiscard());
+  window.addEventListener("beforeunload", (event) => {
+    if (dirty || busy) { event.preventDefault(); event.returnValue = ""; }
+  }, { signal: lifetime.signal });
+
+  function newDraft(): Draft {
+    return { id: null, name: bios.length ? "Untitled bio" : "My first bio", displayName: user.username, note: "", tagIds: [], templateId: catalog.templates[0]!.id, font: null, palette: null };
   }
 
-  async function answer<Answer extends object>(request: Promise<Answer>): Promise<Success<Answer>> {
-    const result = await request;
-    if (refused(result)) throw new Error(reason(result));
-    return result as Success<Answer>;
+  function fromBio(bio: Bio): Draft {
+    return { id: bio.id, name: bio.name, displayName: bio.displayName, note: bio.note, tagIds: [...bio.tagIds], templateId: bio.templateId, font: bio.font, palette: bio.palette };
   }
 
-  async function openBio(bio: Bio) {
-    current = await answer(api.bios.view({ bio }));
-    creating = false;
-    drawList();
-    drawEditing();
-    drawSharing();
+  function fromViewed(viewed: Viewed): Bio {
+    const { bio, name, card, overrides } = viewed;
+    const currentTemplate = card.look.template ?? catalog.templates[0]!.id;
+    const templateId = currentTemplate;
+    return { id: bio, name, displayName: card.displayName, note: card.note, tagIds: card.tags.map((tag) => tag.tag),
+      templateId, font: overrides.font, palette: overrides.palette,
+      look: effectiveLook({ templateId, font: overrides.font, palette: overrides.palette }, catalog), updatedAt: "" };
   }
 
-  async function loadAll(preferred?: Bio) {
-    const [savedBios, offered, status] = await Promise.all([
-      answer(api.bios.list({})), answer(api.templates.list({})), answer(api.sharing.status({})),
+  async function loadCatalog(offered: Template[], suggestions: Suggestion[]) {
+    const seedByName = new Map(seedTags.map((tag, index) => [tag.name, { tag, index }]));
+    const mains = new Map<string, Suggestion>();
+    for (const tag of suggestions) if (tag.mainName !== interestsGroup && !mains.has(tag.main)) mains.set(tag.main, tag);
+    const categoryOf = (name: string): Category => {
+      const parents = seedByName.get(name)?.tag.under ?? [];
+      return parents.includes(interestsGroup) ? "interest" : parents.length > 1 ? "pairing" : parents.length ? "character" : "fandom";
+    };
+    const tags: Tag[] = [...mains.values()].sort((left, right) => (seedByName.get(left.mainName)?.index ?? Infinity) - (seedByName.get(right.mainName)?.index ?? Infinity)).map((tag) => ({
+      id: tag.main, name: tag.mainName, category: categoryOf(tag.mainName), aliases: suggestions.filter((other) => other.main === tag.main && other.tag !== tag.main).map((other) => other.name), parents: [],
+    }));
+    const wanted = ["Convention poster", "Side by side (MVP)", "Quiet notes"];
+    const templates = wanted.map((name) => {
+      const template = offered.find((item) => item.name === name);
+      if (!template) throw new Error("The bio templates could not be loaded. Try again.");
+      return { id: template.template, name: name === "Side by side (MVP)" ? "Side by side" : name, layout: template.layout, font: template.font, palette: template.palette };
+    });
+    // Existing alpha bios keep their saved template until their owner selects another layout.
+    templates.push(...offered.filter((template) => !wanted.includes(template.name)).map((template) => ({
+      id: template.template, name: template.name, layout: template.layout, font: template.font, palette: template.palette,
+    })));
+    catalog = { tags, templates, fonts: ["Sans", "Serif", "Mono"], palettes: ["Ocean", "Sunset", "Forest"] };
+  }
+
+  async function loadAll() {
+    const [list, templates, vocabulary, sharing] = await Promise.all([
+      answer(api.bios.list({})), answer(api.templates.list({})), answer(api.tags.suggest({ text: "" })), answer(api.sharing.status({})),
     ]);
-    bios = savedBios.bios;
-    templates = offered.templates;
-    sharing = status.sharing;
-    const next = preferred ?? current?.bio ?? sharing.displayed ?? bios[0]?.bio;
-    if (next !== undefined && bios.some((bio) => bio.bio === next)) {
-      await openBio(next);
-      recovery.hidden = true;
-      return;
+    await loadCatalog(templates.templates, vocabulary.tags);
+    user.handle = sharing.sharing.handle;
+    publication = sharing.sharing.displayed ? { item: sharing.sharing.displayed, listed: sharing.sharing.open === true } : null;
+    bios = [];
+    for (const entry of list.bios) {
+      const viewed = await answer(api.bios.view({ bio: entry.bio }));
+      // Preserve any server tag not yet present in the starter vocabulary.
+      for (const tag of viewed.card.tags) {
+        if (catalog.tags.some((item) => item.id === tag.tag) || tag.name === interestsGroup) continue;
+        catalog.tags.push({ id: tag.tag, name: tag.name, aliases: [], parents: [], category: tag.under.some((parent) => parent.name === interestsGroup) ? "interest" : tag.under.filter((parent) => parent.direct).length > 1 ? "pairing" : tag.under.length ? "character" : "fandom" });
+      }
+      bios.push(fromViewed(viewed));
     }
-    current = undefined;
-    creating = bios.length === 0;
-    drawList();
-    drawEditing();
-    drawSharing();
-    recovery.hidden = true;
+    draft = bios.length ? fromBio(bios.find((bio) => bio.id === publication?.item) ?? bios[0]!) : newDraft();
+    dirty = false;
+    render();
+  }
+
+  function state() {
+    return { draft: draft!, catalog, bios, publication, user, dirty, editorQuery };
+  }
+
+  function render(focusId?: string) {
+    if (!draft || lifetime.signal.aborted) return;
+    document.title = "My bios · Fandom Friends";
+    root.innerHTML = editorView(state()).html;
+    const tabs = root.querySelector<HTMLElement>(".bio-tabs");
+    const active = tabs?.querySelector(".bio-tab.active");
+    if (tabs && active) {
+      const overflow = active.getBoundingClientRect().right - tabs.getBoundingClientRect().right;
+      if (overflow > 0) tabs.scrollLeft += Math.ceil(overflow);
+    }
+    if (focusId) root.querySelector<HTMLElement>(`[id="${CSS.escape(focusId)}"]`)?.focus({ preventScroll: true });
+  }
+
+  function updateEditor(tagsChanged = false) {
+    if (!draft) return;
+    const view = editorView(state());
+    root.querySelector("#card-preview")!.innerHTML = view.preview;
+    root.querySelector("#save-status")!.textContent = dirty ? "Unsaved changes" : "";
+    root.querySelector("#note-count")!.textContent = String(draft.note.length);
+    if (tagsChanged) {
+      root.querySelector("#editor-tags")!.innerHTML = view.tags;
+      root.querySelector("#editor-suggestions")!.innerHTML = view.suggestions;
+      const search = root.querySelector<HTMLInputElement>("#editor-search")!;
+      search.value = editorQuery;
+      search.focus({ preventScroll: true });
+    }
+    const publish = root.querySelector<HTMLButtonElement>('[data-action="publish"]');
+    if (publish) publish.textContent = publication?.item === draft.id ? "Save public changes" : "Save & display this bio";
+  }
+
+  /** Keep the original explicit Save workflow; API calls happen only after Save or Publish. */
+  async function save(asNew = false): Promise<Bio> {
+    if (!draft) throw new Error("Choose a bio first.");
+    if (!draft.name.trim() || !draft.displayName.trim()) throw new Error("Give your bio a saved name and a display name first.");
+    if (draft.name.length > 60 || draft.displayName.length > 60 || draft.note.length > 280) throw new Error("Check the length of your bio fields.");
+    const input = { ...draft, tagIds: [...draft.tagIds] };
+    // The alpha's Drafting concept requires unique saved names. A copy keeps a distinct private name.
+    if (asNew && !pendingSaveID && bios.some((bio) => bio.name === input.name)) {
+      let number = 1;
+      do { const suffix = number === 1 ? " (copy)" : ` (copy ${number})`; input.name = `${draft.name.slice(0, 60 - suffix.length)}${suffix}`; number += 1; }
+      while (bios.some((bio) => bio.name === input.name));
+    }
+    let id = pendingSaveID ?? (asNew ? null : input.id);
+    if (!id) {
+      id = (await answer(api.bios.start({ name: input.name }))).bio;
+      // Remember a created draft if a later request fails, so Retry Save edits it rather than creating another.
+      draft.id = id;
+      draft.name = input.name;
+      pendingSaveID = id;
+      dirty = true;
+    }
+    const bio = id as BioID;
+    // Re-read after a failed save: earlier requests may already have persisted part of it.
+    const before = await answer(api.bios.view({ bio }));
+    if (before?.name !== input.name) await answer(api.bios.rename({ bio, name: input.name }));
+    await answer(api.bios.details({ bio, displayName: input.displayName, note: input.note }));
+    const previous = new Set(before?.card.tags.map((tag) => tag.tag) ?? []);
+    for (const tag of previous) if (!input.tagIds.includes(tag)) await answer(api.bios.tags.remove({ bio, tag }));
+    for (const tag of input.tagIds) if (!previous.has(tag as TagID)) await answer(api.bios.tags.add({ bio, tag: tag as TagID }));
+    if (before?.card.look.template !== input.templateId) await answer(api.bios.look.template({ bio, template: input.templateId as TemplateID }));
+    if (before?.overrides.font !== input.font || before?.overrides.palette !== input.palette) {
+      const reset = await api.bios.look.reset({ bio });
+      if (refused(reset) && codeOf(reset) !== "LOOK_NOT_CUSTOMIZED") throw new Error(reason(reset));
+      if (input.font !== null) await answer(api.bios.look.font({ bio, font: input.font }));
+      if (input.palette !== null) await answer(api.bios.look.palette({ bio, palette: input.palette }));
+    }
+    const viewed = await answer(api.bios.view({ bio }));
+    const persisted = fromViewed(viewed);
+    const index = bios.findIndex((item) => item.id === id);
+    if (index < 0) bios.push(persisted); else bios[index] = persisted;
+    draft = fromBio(persisted);
+    pendingSaveID = null;
+    dirty = false;
+    return persisted;
   }
 
   async function refreshSharing() {
-    sharing = (await answer(api.sharing.status({}))).sharing;
-    drawList();
-    drawSharing();
-    showCard();
+    const { sharing } = await answer(api.sharing.status({}));
+    user.handle = sharing.handle;
+    publication = sharing.displayed ? { item: sharing.displayed, listed: sharing.open === true } : null;
   }
 
-  function changed(result: { card: Card }) {
-    if (!current) return;
-    current = { ...current, card: result.card };
-    showCard();
-  }
-
-  function drawList() {
-    const pendingName = createArea.querySelector<HTMLInputElement>("input")?.value ?? "";
-    const tabs = h("div", { className: "bio-tabs", role: "group", ariaLabel: "Saved bios" },
-      ...bios.map((bio) => {
-        const tab = button("", () => {
-          if (bio.bio === current?.bio) return;
-          return run(() => openBio(bio.bio), false);
-        }, {
-          className: `bio-tab${bio.bio === current?.bio ? " active" : ""}${bio.bio === sharing.displayed ? " published" : ""}`,
-          ariaPressed: String(bio.bio === current?.bio), title: bio.name,
-        });
-        tab.append(h("span", { className: "bio-tab-name", textContent: bio.name }));
-        if (bio.bio === sharing.displayed) tab.append(h("span", { className: "bio-status", textContent: "Public" }));
-        return tab;
-      }),
-    );
-    const start = button("+ New bio", () => {
-      creating = !creating;
-      createArea.hidden = !creating;
-      list.querySelector(".new-bio-tab")?.setAttribute("aria-expanded", String(creating));
-      if (creating) createArea.querySelector("input")?.focus();
-    }, { className: "new-bio-tab", ariaExpanded: String(creating) });
-    start.setAttribute("aria-controls", "new-bio-form");
-    fill(list, tabs, start);
-
-    const name = h("input", { id: "new-bio-name", className: "input", value: pendingName || (bios.length === 0 ? "My first bio" : "Untitled bio"), maxLength: 80, required: true });
-    const form = h("form", { id: "new-bio-form", className: "panel editor-intro" },
-      h("label", { className: "field-label", htmlFor: name.id }, "Saved bio name ", h("span", { className: "help-inline", textContent: "Only you see this" })),
-      h("div", { className: "row" }, name,
-        h("button", { type: "submit", className: "button primary", textContent: "Save bio" }),
-        button("Cancel", () => {
-          creating = false;
-          createArea.hidden = true;
-          list.querySelector(".new-bio-tab")?.setAttribute("aria-expanded", "false");
-          list.querySelector<HTMLButtonElement>(".new-bio-tab")?.focus();
-        }, { className: "button ghost" }),
-      ),
-    );
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      void run(async () => {
-        const started = await answer(api.bios.start({ name: name.value }));
-        await loadAll(started.bio);
-        report("Bio saved.");
-      });
-    });
-    fill(createArea, form);
-    createArea.hidden = !creating;
-  }
-
-  function drawEditing() {
-    if (!current) {
-      showCard = () => {};
-      fill(editing);
-      const template = templates.find((offered) => offered.default) ?? templates[0];
-      fill(preview, drawCard({ tags: [], look: {
-        template: template?.template ?? null, layout: template?.layout ?? null,
-        font: template?.font ?? null, palette: template?.palette ?? null,
-      } }, sharing.handle ?? undefined));
+  async function action(name: string, id: string) {
+    if (!draft) return;
+    if (name === "new-bio" || name === "select-bio") {
+      if (name === "select-bio" && draft.id === id) return;
+      if (!mayDiscard()) return;
+      draft = name === "new-bio" ? newDraft() : fromBio(bios.find((bio) => bio.id === id)!);
+      pendingSaveID = null;
+      dirty = false; editorQuery = ""; render();
+      if (name === "new-bio") root.querySelector<HTMLInputElement>("#bio-name")?.focus();
+      else root.querySelector<HTMLButtonElement>('.bio-tab[aria-pressed="true"]')?.focus({ preventScroll: true });
       return;
     }
-    const { bio, name } = current;
-    const rename = h("input", { id: "bio-name", className: "input", value: name, maxLength: 80, required: true });
-    const renameForm = h("form", { className: "field" },
-      h("label", { className: "field-label", htmlFor: rename.id }, "Saved bio name ", h("span", { className: "help-inline", textContent: "Only you see this" })),
-      h("div", { className: "row" }, rename, h("button", { type: "submit", className: "button secondary small", textContent: "Rename" })),
-    );
-    renameForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (rename.value === current?.name) return;
-      void run(async () => {
-        await answer(api.bios.rename({ bio, name: rename.value }));
-        await loadAll(bio);
-        report("Bio renamed.");
-      });
-    });
-    rename.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") rename.value = current?.name ?? name;
-    });
-
-    const selected = h("div", { className: "selected-tags" });
-    const picker = tagPicker({
-      label: "Find a tag", selected: () => current?.card.tags.map((tag) => tag.tag) ?? [],
-      pick: (tag) => run(async () => changed(await answer(api.bios.tags.add({ bio, tag: tag.main })))), say: report,
-    });
-    const templateChoices = templates.map((template) => {
-      const control = button("", () => {
-        if (current?.card.look.template === template.template) return;
-        return run(async () => changed(await answer(api.bios.look.template({ bio, template: template.template }))));
-      }, {
-        className: "template-option", ariaPressed: "false",
-      });
-      const miniature = h("span", { className: "template-mini", ariaHidden: "true" });
-      miniature.dataset.layout = template.layout;
-      control.append(miniature, h("span", { className: "template-name", textContent: template.name }));
-      return { template, control };
-    });
-    const fontChoices = fonts.map((font) => ({ font, control: button(font, () => run(async () => changed(await answer(api.bios.look.font({ bio, font })))), {
-      className: "choice-button", ariaPressed: "false",
-    }) }));
-    const paletteChoices = palettes.map((palette) => {
-      const control = button("", () => run(async () => changed(await answer(api.bios.look.palette({ bio, palette })))), { className: "choice-button", ariaPressed: "false" });
-      const swatch = h("span", { className: "palette-swatch", ariaHidden: "true" });
-      swatch.dataset.palette = palette;
-      control.append(swatch, palette);
-      return { palette, control };
-    });
-
-    showCard = () => {
-      if (!current || current.bio !== bio) return;
-      const { card } = current;
-      const groups = groupCardTags(card.tags);
-      fill(selected, ...groups.map((group) => h("section", { className: "tag-group" },
-        h("h3", { className: "tag-group-label", textContent: editorTagLabels[group.key] }),
-        h("ul", { className: "selected-tags" }, ...group.tags.map((tag) => h("li", { className: `tag-chip ${group.key}` },
-          tag.name,
-          button("×", async () => {
-            await run(async () => changed(await answer(api.bios.tags.remove({ bio, tag: tag.tag }))));
-            picker.querySelector<HTMLInputElement>("input")?.focus();
-          }, { className: "tag-remove", ariaLabel: `Remove ${tag.name}` }),
-        ))),
-      )), groups.length === 0 ? h("p", { className: "tag-empty", textContent: "Your favorites go here. Pick a few tags below." }) : null);
-      for (const { template, control } of templateChoices) {
-        const active = card.look.template === template.template;
-        control.classList.toggle("selected", active);
-        control.setAttribute("aria-pressed", String(active));
-      }
-      for (const { font, control } of fontChoices) {
-        const active = card.look.font === font;
-        control.classList.toggle("selected", active);
-        control.setAttribute("aria-pressed", String(active));
-      }
-      for (const { palette, control } of paletteChoices) {
-        const active = card.look.palette === palette;
-        control.classList.toggle("selected", active);
-        control.setAttribute("aria-pressed", String(active));
-      }
-      fill(preview, drawCard(card, sharing.handle ?? undefined));
-    };
-
-    fill(editing,
-      h("section", { className: "panel editor-intro" },
-        current.bio === sharing.displayed ? h("p", { className: "editor-public-note", textContent: "Saving updates your public card." }) : null,
-        renameForm,
-        h("div", { className: "section-heading" }, h("h2", { textContent: "Your very specific interests" }),
-          h("p", { className: "panel-description", textContent: "Choose the things you’d love to talk about." })),
-        selected, picker,
-      ),
-      h("section", { className: "panel look-panel" },
-        h("div", { className: "panel-heading" }, h("h2", { textContent: "Layout" }),
-          button("Reset font & color", () => run(async () => {
-            const result = await api.bios.look.reset({ bio });
-            if (refused(result)) {
-              if (codeOf(result) === "LOOK_NOT_CUSTOMIZED") return report("Already using the template’s font and colors.");
-              throw new Error(reason(result));
-            }
-            changed(result);
-          }), { className: "button ghost small" })),
-        h("p", { className: "field-label", textContent: "Layout" }),
-        h("div", { className: "template-options", role: "group", ariaLabel: "Card layout" }, ...templateChoices.map(({ control }) => control)),
-        h("p", { className: "field-label", textContent: "Font" }),
-        h("div", { className: "choice-row", role: "group", ariaLabel: "Card font" }, ...fontChoices.map(({ control }) => control)),
-        h("p", { className: "field-label", textContent: "Color story" }),
-        h("div", { className: "choice-row", role: "group", ariaLabel: "Card palette" }, ...paletteChoices.map(({ control }) => control)),
-        h("p", { className: "help-text", textContent: "Your font and color choices carry over when you switch layouts." }),
-      ),
-      h("div", { className: "save-bar" }, saved,
-        h("div", { className: "save-actions" }, button("Delete", async () => {
-          if (!confirm(`Delete "${current?.name ?? name}"? This cannot be undone.`)) return;
-          await run(async () => {
-            await answer(api.bios.discard({ bio }));
-            current = undefined;
-            await loadAll();
-            report("Bio deleted.");
-          });
-        }, { className: "button ghost small" })),
-      ),
-    );
-    showCard();
+    if (name === "add-tag" || name === "remove-tag") {
+      draft.tagIds = name === "add-tag" ? [...new Set([...draft.tagIds, id])] : draft.tagIds.filter((tag) => tag !== id);
+      dirty = true; editorQuery = ""; updateEditor(true); return;
+    }
+    if (["template", "font", "palette", "reset-style"].includes(name)) {
+      if (name === "template") draft.templateId = id;
+      if (name === "font") draft.font = id;
+      if (name === "palette") draft.palette = id;
+      if (name === "reset-style") { draft.font = null; draft.palette = null; }
+      dirty = true; const focused = (document.activeElement as HTMLElement | null)?.id; render(focused); return;
+    }
+    if (name === "save" || name === "save-as-new") {
+      await save(name === "save-as-new"); render(); toast("Bio saved.", false, 3000); return;
+    }
+    if (name === "publish") {
+      if (dirty || !draft.id) await save();
+      if (publication?.item !== draft!.id) await answer(api.sharing.display({ bio: draft!.id as BioID }));
+      await refreshSharing(); render(); toast("Your bio is public at your link."); return;
+    }
+    if (name === "unpublish") {
+      if (!window.confirm("Unpublish your public bio? Your saved bios will stay private, and discovery will turn off.")) return;
+      await answer(api.sharing.hide({})); publication = null; render(); toast("Your bio is now private."); return;
+    }
+    if (name === "delete-bio") {
+      if (!draft.id || !window.confirm(`Delete “${draft.name}”?${publication?.item === draft.id ? " This also removes your public card and discovery listing." : ""} This cannot be undone.`)) return;
+      await answer(api.bios.discard({ bio: draft.id as BioID }));
+      if (publication?.item === draft.id) publication = null;
+      bios = bios.filter((bio) => bio.id !== draft!.id);
+      draft = bios.length ? fromBio(bios[0]!) : newDraft(); dirty = false; render(); toast("Bio deleted."); return;
+    }
+    if (name === "copy-link") {
+      const link = `${location.origin}/u/${user.handle}`;
+      try { await navigator.clipboard.writeText(link); toast("Public link copied."); }
+      catch { toast(`Your public link: ${link}`); }
+    }
   }
 
-  function drawSharing() {
-    if (sharing.handle === null) {
-      const handle = h("input", {
-        id: "public-handle", className: "input", placeholder: "your-fandom-corner", minLength: 3, maxLength: 30,
-        pattern: "[a-z0-9-]+", required: true, autocapitalize: "none", spellcheck: false,
-      });
-      const claim = h("form", {},
-        h("label", { className: "field-label", htmlFor: handle.id, textContent: "Choose your public handle" }), handle,
-        h("p", { className: "help-text", textContent: "3–30 lowercase letters, numbers, or hyphens. This becomes your stable public address." }),
-        h("button", { className: "button secondary wide", type: "submit", textContent: "Claim this handle" }),
-      );
-      claim.addEventListener("submit", (event) => {
-        event.preventDefault();
-        void run(async () => {
-          await answer(api.sharing.claim({ handle: handle.value }));
-          await refreshSharing();
-          report("Your handle is yours. Display a bio when you’re ready to share.");
-        });
-      });
-      fill(share, h("h2", { textContent: "Share at your own pace" }),
-        h("p", { className: "panel-description", textContent: "Publishing makes a bio readable by anyone with its link." }), claim,
-        h("p", { className: "help-text", textContent: "Unpublishing removes your hosted card." }));
-      return;
+  async function run(task: () => Promise<void>, lock = true) {
+    if (busy) return;
+    busy = true;
+    if (lock) { root.inert = true; root.setAttribute("aria-busy", "true"); }
+    try { await task(); }
+    catch (error) {
+      if (draft) render();
+      else {
+        root.innerHTML = '<div class="page editor-page empty-state"><h1>We couldn’t load this page.</h1><p>Please try again.</p><button class="button primary" data-action="retry">Try again</button></div>';
+      }
+      toast(error instanceof Error ? error.message : "Please try again.", true);
     }
+    finally { busy = false; root.inert = false; root.removeAttribute("aria-busy"); }
+  }
 
-    const address = `/u/${encodeURIComponent(sharing.handle)}`;
-    const publicURL = `${location.origin}${address}`;
-    const link = h("a", { href: address, textContent: address });
-    link.addEventListener("click", (event) => {
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      event.preventDefault();
-      go(address);
+  root.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const anchor = event.target.closest<HTMLAnchorElement>("a[data-nav]");
+    if (anchor && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault(); if (!busy) context.go(anchor.pathname); return;
+    }
+    const control = event.target.closest<HTMLElement>("[data-action]");
+    if (!control || busy || control instanceof HTMLButtonElement && control.disabled) return;
+    event.preventDefault();
+    const name = control.dataset.action ?? "";
+    if (name === "retry") { void run(loadAll); return; }
+    void run(() => action(name, control.dataset.id ?? ""), ["save", "save-as-new", "publish", "unpublish", "delete-bio", "copy-link"].includes(name));
+  });
+
+  root.addEventListener("input", (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement) || !draft) return;
+    if (input.id === "editor-search") {
+      editorQuery = input.value; root.querySelector("#editor-suggestions")!.innerHTML = editorView(state()).suggestions; return;
+    }
+    if (input.dataset.field === "name" || input.dataset.field === "displayName" || input.dataset.field === "note") {
+      draft[input.dataset.field] = input.value; dirty = true; updateEditor();
+    }
+  });
+
+  root.addEventListener("submit", (event) => {
+    if (!(event.target instanceof HTMLFormElement) || event.target.id !== "handle-form") return;
+    event.preventDefault(); const form = event.target;
+    void run(async () => {
+      await answer(api.sharing.claim({ handle: String(new FormData(form).get("handle") ?? "") }));
+      await refreshSharing(); render(); toast("Your public handle is reserved.");
     });
-    const displayedName = bios.find((bio) => bio.bio === sharing.displayed)?.name;
-    const isPublic = current?.bio === sharing.displayed;
-    const copy = button("Copy link", async () => {
+  });
+
+  root.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLInputElement) || event.target.id !== "listing-toggle") return;
+    const input = event.target; const requested = input.checked;
+    if (busy) { input.checked = publication?.listed ?? false; return; }
+    void run(async () => {
       try {
-        await navigator.clipboard.writeText(publicURL);
-        report("Public link copied.");
-      } catch {
-        report("Could not copy the link. Select the address above and copy it.");
-      }
-    }, { className: "button ghost small" });
-    const open = h("input", { id: "open-to-friends", type: "checkbox", role: "switch", checked: sharing.open === true, disabled: sharing.displayed === null });
-    open.addEventListener("change", () => void run(async () => {
-      const result = open.checked ? await answer(api.sharing.open({})) : await answer(api.sharing.close({}));
-      await refreshSharing();
-      report(result.open ? "You’re open to new friends. Your public bio appears in search." : "Discovery is off. Your public link still works.");
-    }));
+        if (requested) await answer(api.sharing.open({})); else await answer(api.sharing.close({}));
+        await refreshSharing(); render(); toast(requested ? "You’re open to new friends." : "Discovery is off. Your public link still works.");
+      } catch (error) { input.checked = !requested; throw error; }
+    });
+  });
 
-    fill(share,
-      h("h2", { textContent: "Share at your own pace" }),
-      h("p", { className: "panel-description", textContent: "Publishing makes a bio readable by anyone with its link." }),
-      h("div", { className: "public-link" }, link, copy),
-      sharing.displayed === null
-        ? h("p", { className: "help-text", textContent: "Your handle is reserved. Publish a bio to make this link work." })
-        : !isPublic ? h("div", { className: "notice" }, "Your link currently displays ",
-          h("strong", { textContent: displayedName ?? "another saved bio" }), ". Displaying this bio replaces it.") : null,
-      current ? button(isPublic ? "Your bio is public" : "Display this bio", () => run(async () => {
-          await answer(api.sharing.display({ bio: current!.bio }));
-          await refreshSharing();
-          drawEditing();
-          report("This bio is now public. Anyone with the link can read it.");
-        }), { className: `button ${isPublic ? "secondary" : "primary"} wide`, disabled: isPublic }) : null,
-      sharing.displayed !== null ? h("div", { className: "toggle-row" },
-        h("div", {}, h("label", { className: "field-label", htmlFor: open.id, textContent: "Open to New Friends" }),
-          h("p", { className: "help-text", textContent: `List ${!isPublic && displayedName ? `“${displayedName}”` : "your public bio"} in discovery. People can find it by its tags.` })),
-        h("label", { className: "switch" }, open, h("span", { className: "switch-track", ariaHidden: "true" })),
-      ) : h("p", { className: "help-text", textContent: "Publishing won’t list you in discovery. You can opt in after publishing." }),
-      sharing.displayed !== null ? button("Unpublish public bio", () => run(async () => {
-          await answer(api.sharing.hide({}));
-          await refreshSharing();
-          drawEditing();
-          report("Your bio is private again. It no longer appears at your link or in search.");
-        }), { className: "button ghost small" }) : null,
-      h("p", { className: "help-text", textContent: "Unpublishing removes your hosted card." }),
-    );
-  }
-
-  void run(async () => {
-    try {
-      await loadAll();
-    } catch (error) {
-      fill(editing, h("section", { className: "panel empty-state" },
-        h("h2", { textContent: "Your bios couldn’t load." }),
-        h("p", { textContent: "Check your connection and try again." }),
-        button("Try again", () => run(loadAll, false), { className: "button primary" }),
-      ));
-      throw error;
+  window.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.keyCode === 229) return;
+    if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "s") {
+      event.preventDefault(); if (!event.repeat && !busy) root.querySelector<HTMLButtonElement>('[data-action="save"]')?.click();
+    } else if (event.key === "ArrowDown" && event.target instanceof HTMLInputElement && event.target.id === "editor-search") {
+      event.preventDefault(); root.querySelector<HTMLElement>("#editor-suggestions button")?.focus();
     }
-  }, false);
+  }, { signal: lifetime.signal });
+
+  void run(loadAll);
   return root;
 };

@@ -171,4 +171,7 @@ _look (item: Item) : optional (template: Template, layout: String, font: String,
 _styled (item: Item) : one (styled: Flag)
   answers true when item has a template, its own font, or its own palette
   answers false for an item with none of them, even when it shows the default look
+_overrides (item: Item) : one (font: String | null, palette: String | null)
+  answers the item's own font and palette, with null for each choice it inherits from its template
+  answers null for both choices when the item has none, even when it shows the default look
 ```

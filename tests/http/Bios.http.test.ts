@@ -171,7 +171,7 @@ describe("keeping saved bios", () => {
 
     expect(statusAndBody(await alice("/bios/view", { bio }))).toEqual({
       status: 200,
-      body: { bio, name: "Frieren and sketch swaps", card: { tags: [], look: classic } },
+      body: { bio, name: "Frieren and sketch swaps", card: { displayName: "", note: "", tags: [], look: classic }, overrides: { font: null, palette: null } },
     });
   });
 
@@ -259,7 +259,7 @@ describe("tagging a bio", () => {
 
     expect(statusAndBody(added)).toEqual({
       status: 200,
-      body: { bio, card: { tags: [{ tag: await app.tag("Frieren"), name: "Frieren", under: [] }], look: classic } },
+      body: { bio, card: { displayName: "", note: "", tags: [{ tag: await app.tag("Frieren"), name: "Frieren", under: [] }], look: classic } },
     });
   });
 
@@ -385,7 +385,7 @@ describe("styling a bio", () => {
 
     const chosen = await alice("/bios/look/template", { bio, template: sideBySide.template });
 
-    expect(statusAndBody(chosen)).toEqual({ status: 200, body: { bio, card: { tags: [], look: sideBySide } } });
+    expect(statusAndBody(chosen)).toEqual({ status: 200, body: { bio, card: { displayName: "", note: "", tags: [], look: sideBySide } } });
     expect((await cardOf(alice, bio)).look).toEqual(sideBySide);
   });
 
@@ -412,7 +412,7 @@ describe("styling a bio", () => {
 
     const reset = await alice("/bios/look/reset", { bio });
 
-    expect(statusAndBody(reset)).toEqual({ status: 200, body: { bio, card: { tags: [], look: sideBySide } } });
+    expect(statusAndBody(reset)).toEqual({ status: 200, body: { bio, card: { displayName: "", note: "", tags: [], look: sideBySide } } });
     expect((await cardOf(alice, bio)).look).toEqual(sideBySide);
   });
 
@@ -468,7 +468,7 @@ describe("styling a bio", () => {
       const chosen = await alice("/bios/look/font", { bio, font });
       expect(statusAndBody(chosen)).toEqual({
         status: 200,
-        body: { bio, card: { tags: [], look: { ...classic, font } } },
+        body: { bio, card: { displayName: "", note: "", tags: [], look: { ...classic, font } } },
       });
     }
   });
@@ -481,7 +481,7 @@ describe("styling a bio", () => {
       const chosen = await alice("/bios/look/palette", { bio, palette });
       expect(statusAndBody(chosen)).toEqual({
         status: 200,
-        body: { bio, card: { tags: [], look: { ...classic, palette } } },
+        body: { bio, card: { displayName: "", note: "", tags: [], look: { ...classic, palette } } },
       });
     }
   });
@@ -541,6 +541,7 @@ const endpointsWithoutABio: Endpoint[] = [
 const endpointsAboutOneBio: Endpoint[] = [
   { path: "/bios/view", request: ({ bio }) => ({ bio }) },
   { path: "/bios/rename", request: ({ bio }) => ({ bio, name: "Sketch swaps only" }) },
+  { path: "/bios/details", request: ({ bio }) => ({ bio, displayName: "Mika", note: "Sketch swaps" }) },
   { path: "/bios/discard", request: ({ bio }) => ({ bio }) },
   { path: "/bios/tags/add", request: ({ bio, tagNotOnBio }) => ({ bio, tag: tagNotOnBio }) },
   { path: "/bios/tags/remove", request: ({ bio, tagOnBio }) => ({ bio, tag: tagOnBio }) },
@@ -776,6 +777,7 @@ describe("the shape of a request", () => {
     "/bios/start": "name must be text and session must come from the cookie",
     "/bios/view": "bio must be a bio identity and session must come from the cookie",
     "/bios/rename": "bio must be a bio identity, name must be text, and session must come from the cookie",
+    "/bios/details": "bio must be an identity, public details must be text, and session must come from the cookie",
     "/bios/discard": "bio must be a bio identity and session must come from the cookie",
     "/bios/tags/add": "bio and tag must be identities and session must come from the cookie",
     "/bios/tags/remove": "bio and tag must be identities and session must come from the cookie",

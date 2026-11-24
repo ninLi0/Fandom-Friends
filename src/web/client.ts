@@ -15,12 +15,18 @@ import { signInPage } from "./pages/sign-in.ts";
 
 /** What every page is given. */
 export interface PageContext {
+  /** The signed-in name, used as the editor's initial display name. */
+  username?: string;
   /** Shows one message to the person, such as why a request was refused. */
   say(message: string): void;
   /** Goes to another address in the app without reloading. */
   go(path: string): void;
   /** Tells the app that the person has just signed in. */
   signedIn(username: string): void;
+  /** Checks unsaved work before navigation or sign-out. */
+  beforeLeave(check: () => boolean): void;
+  /** Disposes page listeners when another page is shown. */
+  onLeave(cleanup: () => void): void;
 }
 
 /** A page builds its element once; it redraws inside that element as things change. */
@@ -35,13 +41,27 @@ document.head.append(h("style", { textContent: editorStyles }));
 
 /** The signed-in person's username, or null. Undefined until the first check answers. */
 let username: string | null | undefined;
+let mayLeave = () => true;
+let cleanups: (() => void)[] = [];
+let historyPosition = typeof history.state?.ffPosition === "number" ? history.state.ffPosition as number : 0;
+let restoringHistory = false;
+let signingOut = false;
+history.replaceState({ ...history.state, ffPosition: historyPosition }, "", location.href);
 
 function say(message: string) {
   status.textContent = message;
 }
 
 function go(path: string) {
-  if (path !== location.pathname) history.pushState(null, "", path);
+  if (signingOut || !mayLeave()) return;
+  navigate(path);
+}
+
+function navigate(path: string) {
+  if (path !== location.pathname) {
+    historyPosition += 1;
+    history.pushState({ ffPosition: historyPosition }, "", path);
+  }
   show();
 }
 
@@ -71,10 +91,20 @@ function drawBar() {
           { className: "account" },
           `Signed in as ${username} `,
           button("Sign out", async () => {
-            const result = await api.auth["sign-out"]({});
-            if (refused(result) && result.error !== "UNAUTHORIZED") return say(reason(result));
-            username = null;
-            go("/");
+            if (signingOut || !mayLeave()) return;
+            signingOut = true;
+            view.inert = true;
+            bar.inert = true;
+            try {
+              const result = await api.auth["sign-out"]({});
+              if (refused(result) && result.error !== "UNAUTHORIZED") return say(reason(result));
+              username = null;
+              navigate("/");
+            } finally {
+              signingOut = false;
+              view.inert = false;
+              bar.inert = false;
+            }
           }),
         )
       : null,
@@ -90,12 +120,29 @@ function pageFor(path: string): Page {
 }
 
 function show() {
+  for (const cleanup of cleanups) cleanup();
+  cleanups = [];
+  mayLeave = () => true;
   say("");
   drawBar();
-  fill(view, pageFor(location.pathname)({ say, go, signedIn }));
+  fill(view, pageFor(location.pathname)({
+    say, go, signedIn, username: username ?? undefined,
+    beforeLeave: (check) => { mayLeave = check; },
+    onLeave: (cleanup) => { cleanups.push(cleanup); },
+  }));
 }
 
-addEventListener("popstate", show);
+addEventListener("popstate", (event: PopStateEvent) => {
+  if (restoringHistory) { restoringHistory = false; return; }
+  const nextPosition = typeof event.state?.ffPosition === "number" ? event.state.ffPosition as number : historyPosition - 1;
+  if (signingOut || !mayLeave()) {
+    restoringHistory = true;
+    history.go(historyPosition - nextPosition);
+    return;
+  }
+  historyPosition = nextPosition;
+  show();
+});
 
 const current = await api.auth.current({});
 username = refused(current) ? null : current.username;

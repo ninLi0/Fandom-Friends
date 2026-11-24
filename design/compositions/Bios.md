@@ -1,7 +1,7 @@
 # Bios
 
 A person keeps several saved bios, so trying a new introduction never means
-overwriting an old one. A bio's tags and look belong to that bio alone.
+overwriting an old one. A bio's public details, tags and look belong to that bio alone.
 
 Every request about one bio resolves the session to a person and then checks
 that [the bio is one of theirs](view:Bios.Keeping.OwnBio). A bio that belongs to
@@ -13,22 +13,34 @@ A person [lists their saved bios](reaction:Bios.Keeping.ListBios), which are
 [start a bio](reaction:Bios.Keeping.StartBio) under a name of their own,
 [rename it](reaction:Bios.Keeping.RenameBio), and
 [open it](reaction:Bios.Keeping.ViewBio) to see its name and
-[its card](former:Bios.Keeping.Card): the bio's tags, the broader tags each one
+[its card](former:Bios.Keeping.Card): its public display name and note, the bio's tags, the broader tags each one
 lies under, and the look in effect. The editor's preview, the public page, and
 a search result all show this same card.
+
+Opening an owned bio also returns [its own font and palette overrides](former:Bios.Keeping.LookOverrides), each
+null when inherited. The editor can therefore save without converting the
+template's defaults into permanent overrides. Public cards expose only the
+effective look.
+
+The owner [sets the bio's public details](reaction:Bios.Keeping.SetBioDetails)
+with a nonblank display name of at most 60 characters and an optional note of
+at most 280 characters. These are separate from the private saved bio name.
+Older bios without details return empty strings until their owner supplies them.
 
 ```endpoints
 Bios.Keeping.ListBios at /bios/list
 Bios.Keeping.StartBio at /bios/start
 Bios.Keeping.ViewBio at /bios/view
 Bios.Keeping.RenameBio at /bios/rename
+Bios.Keeping.SetBioDetails at /bios/details
 ```
 
 A person [discards a bio](reaction:Bios.Discarding.DiscardBio) they no longer
 want. If it is the displayed bio it is taken down first, so the answer never
 arrives while a discarded bio is still public. Afterwards the bio
 [loses its tags](reaction:Bios.Discarding.DiscardedBioLosesItsTags) and
-[loses its look](reaction:Bios.Discarding.DiscardedBioLosesItsLook), so nothing
+[loses its look](reaction:Bios.Discarding.DiscardedBioLosesItsLook), and
+[loses its public details](reaction:Bios.Discarding.DiscardedBioLosesItsDetails), so nothing
 of it is left behind.
 
 ```endpoints

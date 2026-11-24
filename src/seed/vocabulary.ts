@@ -38,6 +38,10 @@ export const templates: readonly SeedTemplate[] = [
   { name: "Classic", layout: "Stacked", font: "Serif", palette: "Parchment", default: true },
   { name: "Side by side", layout: "Two columns", font: "Sans", palette: "Midnight" },
   { name: "Favorites first", layout: "Spotlight", font: "Rounded", palette: "Sakura" },
+  // Keep existing alpha templates intact while restoring the MVP editor's choices.
+  { name: "Convention poster", layout: "poster", font: "Sans", palette: "Ocean" },
+  { name: "Side by side (MVP)", layout: "columns", font: "Serif", palette: "Sunset" },
+  { name: "Quiet notes", layout: "minimal", font: "Mono", palette: "Forest" },
 ];
 
 const SERIES = "Frieren";

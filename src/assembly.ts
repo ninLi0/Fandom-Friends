@@ -9,6 +9,7 @@ import { composition as Vocabulary } from "./compositions/Vocabulary.ts";
 import { applicationConceptSet } from "./concepts.ts";
 import { AuthenticatingConcept, type PasswordHashing } from "./concepts/Authenticating/Authenticating.ts";
 import { Drafting } from "./concepts/Drafting/registry.ts";
+import { Describing } from "./concepts/Describing/registry.ts";
 import { Grouping } from "./concepts/Grouping/registry.ts";
 import { Publishing } from "./concepts/Publishing/registry.ts";
 import { Sessioning } from "./concepts/Sessioning/registry.ts";
@@ -29,6 +30,7 @@ export interface Instances {
   Authenticating: ConceptImplementation<typeof AuthenticatingConcept>;
   Sessioning: ConceptImplementation<typeof Sessioning>;
   Drafting: ConceptImplementation<typeof Drafting>;
+  Describing: ConceptImplementation<typeof Describing>;
   Tagging: ConceptImplementation<typeof Tagging>;
   Synonymizing: ConceptImplementation<typeof Synonymizing>;
   Grouping: ConceptImplementation<typeof Grouping>;
@@ -46,6 +48,7 @@ export function createInstances(
     Authenticating: new AuthenticatingConcept(database, "Authenticating", passwordHashing),
     Sessioning: new Sessioning(database, "Sessioning", clock),
     Drafting: new Drafting(database, "Drafting"),
+    Describing: new Describing(database, "Describing"),
     Tagging: new Tagging(database, "Tagging"),
     Synonymizing: new Synonymizing(database, "Synonymizing"),
     Grouping: new Grouping(database, "Grouping"),

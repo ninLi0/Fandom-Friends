@@ -677,6 +677,8 @@ describe("the public card", () => {
     expectOk(await app.visitor("/cards/view", { handle: "alice-draws" }), {
       handle: "alice-draws",
       card: {
+        displayName: "",
+        note: "",
         tags: [{ tag: await app.tag("Dungeon Meshi"), name: "Dungeon Meshi", under: [] }],
         look: { template: await app.template("Classic"), layout: "Stacked", font: "Serif", palette: "Parchment" },
       },

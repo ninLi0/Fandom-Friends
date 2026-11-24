@@ -315,7 +315,7 @@ describe("loading a vocabulary into the concepts", () => {
     expect(placedOtherNames).toEqual([]);
   });
 
-  test('the three templates exist, "Classic" is the default, and a bio with nothing chosen shows its look', async () => {
+  test('the alpha and MVP templates exist, "Classic" is the default, and a bio with nothing chosen shows its look', async () => {
     const vocabulary = createInstances(database());
     await seedVocabulary(vocabulary);
     const { Templating } = vocabulary;
@@ -324,8 +324,11 @@ describe("loading a vocabulary into the concepts", () => {
     const looks = saved.map(({ name, layout, font, palette, default: isDefault }) => ({ name, layout, font, palette, isDefault }));
     expect(looks).toEqual([
       { name: "Classic", layout: "Stacked", font: "Serif", palette: "Parchment", isDefault: true },
+      { name: "Convention poster", layout: "poster", font: "Sans", palette: "Ocean", isDefault: false },
       { name: "Favorites first", layout: "Spotlight", font: "Rounded", palette: "Sakura", isDefault: false },
+      { name: "Quiet notes", layout: "minimal", font: "Mono", palette: "Forest", isDefault: false },
       { name: "Side by side", layout: "Two columns", font: "Sans", palette: "Midnight", isDefault: false },
+      { name: "Side by side (MVP)", layout: "columns", font: "Serif", palette: "Sunset", isDefault: false },
     ]);
 
     const bio = "a-bio-with-nothing-chosen" as Draft;
@@ -342,7 +345,7 @@ describe("loading a vocabulary into the concepts", () => {
       tagsDefined: everyName(starterTags).length,
       namesLinked: starterTags.flatMap(otherNames).length,
       placementsMade: starterTags.flatMap(placedUnder).length,
-      templatesDefined: 3,
+      templatesDefined: starterTemplates.length,
     });
   });
 
