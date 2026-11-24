@@ -39,12 +39,14 @@ export function groupCardTags(tags: readonly CardTag[]): CardTagGroup[] {
 export function drawCard(card: Card, handle?: string): HTMLElement {
   const groups = groupCardTags(card.tags);
   const catalog: Catalog = {
-    tags: groups.flatMap((group) => group.tags.map((tag) => ({ id: tag.tag, name: tag.name, category: group.key, aliases: [], parents: [] }))),
+    // The names of the tags each one lies directly under tell the card whose pictures a pairing shows.
+    tags: groups.flatMap((group) => group.tags.map((tag) => ({ id: tag.tag, name: tag.name, category: group.key, aliases: [], parents: tag.under.filter((parent) => parent.direct).map((parent) => parent.name) }))),
     templates: [], fonts: [], palettes: [],
   };
   const wrapper = document.createElement("div");
   wrapper.innerHTML = renderCard({
-    displayName: card.displayName, note: card.note, handle,
+    // A bio saved before display names existed has none; other people then see its handle, not the editor's prompt.
+    displayName: card.displayName || (handle ? `@${handle}` : ""), note: card.note, handle,
     tagIds: card.tags.map((tag) => tag.tag),
     look: { template: card.look.template ?? "", layout: card.look.layout ?? "poster", font: card.look.font ?? "Sans", palette: card.look.palette ?? "Ocean" },
   }, catalog);

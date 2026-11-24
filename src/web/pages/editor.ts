@@ -81,7 +81,9 @@ export const editorPage: Page = (context) => {
       return parents.includes(interestsGroup) ? "interest" : parents.length > 1 ? "pairing" : parents.length ? "character" : "fandom";
     };
     const tags: Tag[] = [...mains.values()].sort((left, right) => (seedByName.get(left.mainName)?.index ?? Infinity) - (seedByName.get(right.mainName)?.index ?? Infinity)).map((tag) => ({
-      id: tag.main, name: tag.mainName, category: categoryOf(tag.mainName), aliases: suggestions.filter((other) => other.main === tag.main && other.tag !== tag.main).map((other) => other.name), parents: [],
+      id: tag.main, name: tag.mainName, category: categoryOf(tag.mainName), aliases: suggestions.filter((other) => other.main === tag.main && other.tag !== tag.main).map((other) => other.name),
+      // By name, so the card can show a pairing its two characters' pictures.
+      parents: [...(seedByName.get(tag.mainName)?.tag.under ?? [])],
     }));
     const wanted = ["Convention poster", "Side by side (MVP)", "Quiet notes"];
     const templates = wanted.map((name) => {
@@ -109,7 +111,7 @@ export const editorPage: Page = (context) => {
       // Preserve any server tag not yet present in the starter vocabulary.
       for (const tag of viewed.card.tags) {
         if (catalog.tags.some((item) => item.id === tag.tag) || tag.name === interestsGroup) continue;
-        catalog.tags.push({ id: tag.tag, name: tag.name, aliases: [], parents: [], category: tag.under.some((parent) => parent.name === interestsGroup) ? "interest" : tag.under.filter((parent) => parent.direct).length > 1 ? "pairing" : tag.under.length ? "character" : "fandom" });
+        catalog.tags.push({ id: tag.tag, name: tag.name, aliases: [], parents: tag.under.filter((parent) => parent.direct).map((parent) => parent.name), category: tag.under.some((parent) => parent.name === interestsGroup) ? "interest" : tag.under.filter((parent) => parent.direct).length > 1 ? "pairing" : tag.under.length ? "character" : "fandom" });
       }
       bios.push(fromViewed(viewed));
     }

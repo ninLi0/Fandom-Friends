@@ -6,6 +6,7 @@
  * Moving between pages never reloads the browser.
  */
 import { api, reason, refused } from "./api.ts";
+import { cardPictureStyles, hideBrokenCardPictures } from "./card-pictures.ts";
 import { button, fill, h } from "./dom.ts";
 import { editorStyles } from "./editor-styles.ts";
 import { editorPage } from "./pages/editor.ts";
@@ -38,6 +39,9 @@ const view = document.querySelector<HTMLElement>("#view")!;
 
 // Keep Heyang's editor/card styles together without changing another page's stylesheet.
 document.head.append(h("style", { textContent: editorStyles }));
+// The pictures on a card have their own small stylesheet, after the card's, and leave the card when they fail to load.
+document.head.append(h("style", { textContent: cardPictureStyles }));
+hideBrokenCardPictures();
 
 /** The signed-in person's username, or null. Undefined until the first check answers. */
 let username: string | null | undefined;

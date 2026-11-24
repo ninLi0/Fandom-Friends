@@ -1,6 +1,6 @@
 # Third-party material
 
-Two parts of this project started from other people's code. Everything else was written for Fandom Friends.
+Two parts of this project started from other people's code, and the cards show pictures that belong to other people. Everything else was written for Fandom Friends.
 
 ## ConceptBox (MIT License)
 
@@ -26,3 +26,9 @@ Sign-in started from the message-board example shipped inside `@mit-sdg/sync-eng
 | `src/host/http-policy.ts` | Keeps the shape of the cookie policy; the refusal table and sentences are new. |
 
 The framework itself (`@mit-sdg/sync-engine`, `@mit-sdg/sync-engine-http`) and the MongoDB driver are ordinary dependencies listed in `package.json`.
+
+## Pictures from AniList
+
+The pictures on cards (a series' cover and its characters' portraits) are not in this repository. `src/seed/pictures.ts` holds links to images at [AniList](https://anilist.co), a public anime database, and the browser loads each image from AniList when it draws a card. The server neither copies nor stores them.
+
+The images are official art and belong to their publishers. AniList's [terms of use](https://docs.anilist.co/guide/terms-of-use) allow non-commercial use of its data. Every card that shows one of these pictures also shows the line "Pictures from AniList" with a link.
