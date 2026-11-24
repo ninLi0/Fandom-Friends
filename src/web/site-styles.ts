@@ -30,11 +30,11 @@ body:has(.sign-in-page) > #status, body:has(.search-page) > #status { width: min
 .sign-in-page :focus-visible, .search-page :focus-visible { outline: 3px solid #809aff; outline-offset: 3px; }
 
 /* Buttons, shaped like the editor's. */
-.sign-in-page .site-button, .search-page .result > a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 19px; border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; line-height: 1.4; text-decoration: none; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+.sign-in-page .site-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 19px; border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; line-height: 1.4; text-decoration: none; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
 .sign-in-page .site-button.primary { background: #234ee8; color: #fff; box-shadow: 0 3px 0 rgba(21, 47, 156, .15); }
 .sign-in-page .site-button.primary:hover { background: #193bc0; }
-.sign-in-page .site-button.secondary, .search-page .result > a { background: #fff; color: #18203b; border-color: #dfe3ef; }
-.sign-in-page .site-button.secondary:hover, .search-page .result > a:hover { border-color: #abb6d2; background: #fafbff; }
+.sign-in-page .site-button.secondary { background: #fff; color: #18203b; border-color: #dfe3ef; }
+.sign-in-page .site-button.secondary:hover { border-color: #abb6d2; background: #fafbff; }
 
 /* Sign in: the form in a panel, with a sample card beside it on a wide screen and below it on a phone. */
 .sign-in-page { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 440px); justify-content: center; align-items: center; gap: 64px; padding: 56px 42px 72px; }
@@ -61,7 +61,10 @@ body:has(.sign-in-page) > #status, body:has(.search-page) > #status { width: min
 .search-page .tags li button:hover { background: #dfe6ff; }
 .search-page .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 32px 24px; align-items: start; margin-top: 26px; }
 .search-page .result { display: grid; gap: 12px; min-width: 0; }
-.search-page .result > a { justify-self: start; }
+.search-page .result .bio-page-link { position: absolute; inset: 0; z-index: 2; border-radius: inherit; cursor: pointer; }
+.search-page .result .bio-page-link:focus-visible { outline: 3px solid #809aff; outline-offset: -4px; }
+.search-page .result .bio-card .card-credit { z-index: 3; pointer-events: none; }
+.search-page .result .bio-card .card-credit a { pointer-events: auto; }
 .search-page .results > p { grid-column: 1 / -1; margin: 0; padding: 30px 20px; border: 1px dashed #cfd6e6; border-radius: 18px; background: #fff; text-align: center; font-size: 15px; line-height: 1.6; color: #657087; }
 
 @media (max-width: 860px) {
@@ -72,6 +75,6 @@ body:has(.sign-in-page) > #status, body:has(.search-page) > #status { width: min
   body:has(.sign-in-page) > #status, body:has(.search-page) > #status { width: calc(100% - 32px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sign-in-page .site-button, .search-page .result > a { transition: none; }
+  .sign-in-page .site-button { transition: none; }
 }
 `;

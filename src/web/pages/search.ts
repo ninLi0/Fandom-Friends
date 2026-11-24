@@ -27,12 +27,18 @@ export const searchPage: Page = ({ say, go }) => {
     fill(
       results,
       ...result.people.map((person) => {
-        const link = h("a", { href: `/u/${person.handle}`, textContent: "Open their page" });
+        const path = `/u/${encodeURIComponent(person.handle)}`;
+        const card = drawCard(person.card, person.handle);
+        const link = h("a", { href: path, className: "bio-page-link", ariaLabel: `Open @${person.handle}'s bio` });
         link.addEventListener("click", (event) => {
+          // Keep native new-tab behavior for modified and middle clicks.
+          if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
           event.preventDefault();
-          go(`/u/${person.handle}`);
+          go(path);
         });
-        return h("div", { className: "result" }, drawCard(person.card, person.handle), link);
+        // A sibling link covers the card without nesting its picture-credit links.
+        card.append(link);
+        return h("div", { className: "result" }, card);
       }),
       result.people.length === 0
         ? h("p", { textContent: chosen.length === 0 ? "Nobody is open to new friends yet." : "Nobody has every one of these tags yet. Try fewer tags." })
