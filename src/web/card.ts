@@ -37,7 +37,7 @@ export function groupCardTags(tags: readonly CardTag[]): CardTagGroup[] {
 export function drawCard(card: Card, handle?: string): HTMLElement {
   const groups = groupCardTags(card.tags);
   // A saved bio's name is private. The alpha exposes only its public handle on the card.
-  const identity = handle ? `@${handle}` : "Your fandom bio";
+  const identity = handle ? `@${handle}` : "Your name here";
   const article = h(
     "article",
     { className: "card bio-card", ariaLabel: handle ? `${identity}’s bio card` : "Your bio card preview" },
@@ -55,7 +55,7 @@ export function drawCard(card: Card, handle?: string): HTMLElement {
         ),
       ),
       groups.length === 0
-        ? h("p", { className: "card-empty", textContent: "A favorite character. A niche pairing. Add a few tags and make yourself at home." })
+        ? h("p", { className: "card-empty" }, "A favorite character. A niche pairing.", h("br"), "Add some tags and make yourself at home.")
         : null,
     ),
   );

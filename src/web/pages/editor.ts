@@ -10,6 +10,8 @@ type Bio = SavedBio["bio"];
 type OpenBio = { bio: Bio; name: string; card: Card };
 type Success<Answer> = Exclude<Answer, { error: unknown }>;
 
+const editorTagLabels = { fandom: "Fandoms", character: "Characters", pairing: "Pairings", interest: "Interests & activities" };
+
 export const editorPage: Page = ({ say, go }) => {
   let bios: SavedBio[] = [];
   let templates: Template[] = [];
@@ -24,18 +26,12 @@ export const editorPage: Page = ({ say, go }) => {
   const editing = h("div", { className: "editing" });
   const preview = h("div", { className: "preview-stage" });
   const share = h("section", { className: "panel publish-panel" });
-  const saved = h("p", { className: "save-status", role: "status", textContent: "Loading your bios…" });
+  const saved = h("span", { className: "save-status", role: "status" });
   const recovery = h("div", { className: "notice", hidden: true },
     h("p", { textContent: "Reload your saved bios to check the latest state." }),
     button("Reload saved bios", () => run(() => loadAll(), false), { className: "button secondary small" }),
   );
   const root = h("section", { className: "editor-page" },
-    h("div", { className: "editor-heading" },
-      h("p", { className: "eyebrow", textContent: "A LITTLE CARD. A LOT IN COMMON." }),
-      h("h1", { textContent: "Your corner of the fandom." }),
-      h("p", { className: "panel-description", textContent: "Pick your very specific interests and make a bio that feels like you. Changes save as you go." }),
-      saved, recovery,
-    ),
     h("div", { className: "editor-layout" },
       h("div", { className: "editor-main" }, list, createArea, editing),
       h("aside", { className: "editor-aside", ariaLabel: "Bio preview and sharing" },
@@ -43,6 +39,7 @@ export const editorPage: Page = ({ say, go }) => {
         h("p", { className: "preview-footer", textContent: "Only one saved bio is public at a time. The rest stay yours." }), share,
       ),
     ),
+    recovery,
   );
 
   function report(message: string) {
@@ -60,7 +57,7 @@ export const editorPage: Page = ({ say, go }) => {
     saved.textContent = saving ? "Saving…" : "Loading…";
     try {
       await task();
-      saved.textContent = saving ? "All changes saved." : "Changes save automatically.";
+      saved.textContent = "";
       return true;
     } catch (error) {
       saved.textContent = saving ? "Could not complete this update. Please try again." : "Could not load your bios.";
@@ -110,6 +107,7 @@ export const editorPage: Page = ({ say, go }) => {
       return;
     }
     current = undefined;
+    creating = bios.length === 0;
     drawList();
     drawEditing();
     drawSharing();
@@ -154,12 +152,11 @@ export const editorPage: Page = ({ say, go }) => {
     start.setAttribute("aria-controls", "new-bio-form");
     fill(list, tabs, start);
 
-    const name = h("input", { id: "new-bio-name", className: "input", value: pendingName, placeholder: "Frieren and sketch swaps", maxLength: 80, required: true });
-    const form = h("form", { id: "new-bio-form", className: "panel" },
-      h("label", { className: "field-label", htmlFor: name.id, textContent: "Name your new bio" }),
-      h("p", { className: "help-text", textContent: "Only you see this name. Keep different bios for different sides of your fandom life." }),
+    const name = h("input", { id: "new-bio-name", className: "input", value: pendingName || (bios.length === 0 ? "My first bio" : "Untitled bio"), maxLength: 80, required: true });
+    const form = h("form", { id: "new-bio-form", className: "panel editor-intro" },
+      h("label", { className: "field-label", htmlFor: name.id }, "Saved bio name ", h("span", { className: "help-inline", textContent: "Only you see this" })),
       h("div", { className: "row" }, name,
-        h("button", { type: "submit", className: "button primary", textContent: "Create bio" }),
+        h("button", { type: "submit", className: "button primary", textContent: "Save bio" }),
         button("Cancel", () => {
           creating = false;
           createArea.hidden = true;
@@ -173,7 +170,7 @@ export const editorPage: Page = ({ say, go }) => {
       void run(async () => {
         const started = await answer(api.bios.start({ name: name.value }));
         await loadAll(started.bio);
-        report("Your new bio is ready. Add the things you love.");
+        report("Bio saved.");
       });
     });
     fill(createArea, form);
@@ -183,21 +180,12 @@ export const editorPage: Page = ({ say, go }) => {
   function drawEditing() {
     if (!current) {
       showCard = () => {};
-      fill(editing, h("section", { className: "panel empty-state" },
-        h("span", { className: "empty-icon", ariaHidden: "true", textContent: "✳" }),
-        h("h2", { textContent: "Start with something you love." }),
-        h("p", { textContent: "A favorite character. A niche pairing. A sketch swap. Make your first bio and find your common ground." }),
-        button("Make my first bio", () => {
-          creating = true;
-          createArea.hidden = false;
-          list.querySelector(".new-bio-tab")?.setAttribute("aria-expanded", "true");
-          createArea.querySelector("input")?.focus();
-        }, { className: "button primary" }),
-      ));
-      fill(preview, h("div", { className: "preview-empty" },
-        h("span", { ariaHidden: "true", textContent: "✳" }),
-        h("p", { textContent: "Your fandom bio will come to life here." }),
-      ));
+      fill(editing);
+      const template = templates.find((offered) => offered.default) ?? templates[0];
+      fill(preview, drawCard({ tags: [], look: {
+        template: template?.template ?? null, layout: template?.layout ?? null,
+        font: template?.font ?? null, palette: template?.palette ?? null,
+      } }, sharing.handle ?? undefined));
       return;
     }
     const { bio, name } = current;
@@ -252,7 +240,7 @@ export const editorPage: Page = ({ say, go }) => {
       const { card } = current;
       const groups = groupCardTags(card.tags);
       fill(selected, ...groups.map((group) => h("section", { className: "tag-group" },
-        h("h3", { className: "tag-group-label", textContent: group.title }),
+        h("h3", { className: "tag-group-label", textContent: editorTagLabels[group.key] }),
         h("ul", { className: "selected-tags" }, ...group.tags.map((tag) => h("li", { className: `tag-chip ${group.key}` },
           tag.name,
           button("×", async () => {
@@ -260,7 +248,7 @@ export const editorPage: Page = ({ say, go }) => {
             picker.querySelector<HTMLInputElement>("input")?.focus();
           }, { className: "tag-remove", ariaLabel: `Remove ${tag.name}` }),
         ))),
-      )), groups.length === 0 ? h("p", { className: "tag-empty", textContent: "No tags yet. Choose the things you’d love to talk about." }) : null);
+      )), groups.length === 0 ? h("p", { className: "tag-empty", textContent: "Your favorites go here. Pick a few tags below." }) : null);
       for (const { template, control } of templateChoices) {
         const active = card.look.template === template.template;
         control.classList.toggle("selected", active);
@@ -281,14 +269,14 @@ export const editorPage: Page = ({ say, go }) => {
 
     fill(editing,
       h("section", { className: "panel editor-intro" },
-        current.bio === sharing.displayed ? h("p", { className: "notice", textContent: "This is your public bio. Changes update the card at your link." }) : null,
+        current.bio === sharing.displayed ? h("p", { className: "editor-public-note", textContent: "Saving updates your public card." }) : null,
         renameForm,
         h("div", { className: "section-heading" }, h("h2", { textContent: "Your very specific interests" }),
           h("p", { className: "panel-description", textContent: "Choose the things you’d love to talk about." })),
         selected, picker,
       ),
       h("section", { className: "panel look-panel" },
-        h("div", { className: "panel-heading" }, h("h2", { textContent: "Make it feel like you" }),
+        h("div", { className: "panel-heading" }, h("h2", { textContent: "Layout" }),
           button("Reset font & color", () => run(async () => {
             const result = await api.bios.look.reset({ bio });
             if (refused(result)) {
@@ -305,8 +293,8 @@ export const editorPage: Page = ({ say, go }) => {
         h("div", { className: "choice-row", role: "group", ariaLabel: "Card palette" }, ...paletteChoices.map(({ control }) => control)),
         h("p", { className: "help-text", textContent: "Your font and color choices carry over when you switch layouts." }),
       ),
-      h("div", { className: "save-bar" }, h("span", { className: "help-text", textContent: "Saved as you go. Ready whenever you are." }),
-        button("Delete bio", async () => {
+      h("div", { className: "save-bar" }, saved,
+        h("div", { className: "save-actions" }, button("Delete", async () => {
           if (!confirm(`Delete "${current?.name ?? name}"? This cannot be undone.`)) return;
           await run(async () => {
             await answer(api.bios.discard({ bio }));
@@ -314,7 +302,7 @@ export const editorPage: Page = ({ say, go }) => {
             await loadAll();
             report("Bio deleted.");
           });
-        }, { className: "button ghost small" }),
+        }, { className: "button ghost small" })),
       ),
     );
     showCard();
@@ -328,7 +316,7 @@ export const editorPage: Page = ({ say, go }) => {
       });
       const claim = h("form", {},
         h("label", { className: "field-label", htmlFor: handle.id, textContent: "Choose your public handle" }), handle,
-        h("p", { className: "help-text", textContent: "3–30 lowercase letters, numbers, or hyphens. This becomes your public address." }),
+        h("p", { className: "help-text", textContent: "3–30 lowercase letters, numbers, or hyphens. This becomes your stable public address." }),
         h("button", { className: "button secondary wide", type: "submit", textContent: "Claim this handle" }),
       );
       claim.addEventListener("submit", (event) => {
@@ -340,13 +328,14 @@ export const editorPage: Page = ({ say, go }) => {
         });
       });
       fill(share, h("h2", { textContent: "Share at your own pace" }),
-        h("p", { className: "panel-description", textContent: "Choose a handle, then display one saved bio. Anyone with its link can read it." }), claim);
+        h("p", { className: "panel-description", textContent: "Publishing makes a bio readable by anyone with its link." }), claim,
+        h("p", { className: "help-text", textContent: "Unpublishing removes your hosted card." }));
       return;
     }
 
     const address = `/u/${encodeURIComponent(sharing.handle)}`;
     const publicURL = `${location.origin}${address}`;
-    const link = h("a", { href: address, textContent: `${location.host}${address}` });
+    const link = h("a", { href: address, textContent: address });
     link.addEventListener("click", (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
@@ -370,32 +359,31 @@ export const editorPage: Page = ({ say, go }) => {
     }));
 
     fill(share,
-      h("div", { className: "publish-state" }, h("h2", { textContent: "Share at your own pace" }),
-        h("span", { className: `status-badge${isPublic ? " live" : ""}`, textContent: isPublic ? "Public" : "Private" })),
-      h("p", { className: "panel-description", textContent: displayedName
-        ? `“${displayedName}” is displayed at your link. Only one bio is public at a time.`
-        : "No bio is displayed yet. Display a saved bio to make your link work." }),
+      h("h2", { textContent: "Share at your own pace" }),
+      h("p", { className: "panel-description", textContent: "Publishing makes a bio readable by anyone with its link." }),
       h("div", { className: "public-link" }, link, copy),
-      h("div", { className: "row" },
-        current && !isPublic ? button("Display this bio", () => run(async () => {
+      sharing.displayed === null
+        ? h("p", { className: "help-text", textContent: "Your handle is reserved. Publish a bio to make this link work." })
+        : !isPublic ? h("div", { className: "notice" }, "Your link currently displays ",
+          h("strong", { textContent: displayedName ?? "another saved bio" }), ". Displaying this bio replaces it.") : null,
+      current ? button(isPublic ? "Your bio is public" : "Display this bio", () => run(async () => {
           await answer(api.sharing.display({ bio: current!.bio }));
           await refreshSharing();
           drawEditing();
           report("This bio is now public. Anyone with the link can read it.");
-        }), { className: "button primary wide" }) : null,
-        sharing.displayed !== null ? button("Stop displaying", () => run(async () => {
+        }), { className: `button ${isPublic ? "secondary" : "primary"} wide`, disabled: isPublic }) : null,
+      sharing.displayed !== null ? h("div", { className: "toggle-row" },
+        h("div", {}, h("label", { className: "field-label", htmlFor: open.id, textContent: "Open to New Friends" }),
+          h("p", { className: "help-text", textContent: `List ${!isPublic && displayedName ? `“${displayedName}”` : "your public bio"} in discovery. People can find it by its tags.` })),
+        h("label", { className: "switch" }, open, h("span", { className: "switch-track", ariaHidden: "true" })),
+      ) : h("p", { className: "help-text", textContent: "Publishing won’t list you in discovery. You can opt in after publishing." }),
+      sharing.displayed !== null ? button("Unpublish public bio", () => run(async () => {
           await answer(api.sharing.hide({}));
           await refreshSharing();
           drawEditing();
           report("Your bio is private again. It no longer appears at your link or in search.");
-        }), { className: "button secondary wide" }) : null,
-      ),
-      h("div", { className: "toggle-row" },
-        h("div", {}, h("label", { htmlFor: open.id, textContent: "Open to New Friends" }),
-          h("p", { className: "help-text", textContent: sharing.displayed === null
-            ? "Display a bio first to appear in search."
-            : "Let fans find your displayed bio through shared interests." })), open,
-      ),
+        }), { className: "button ghost small" }) : null,
+      h("p", { className: "help-text", textContent: "Unpublishing removes your hosted card." }),
     );
   }
 

@@ -1,9 +1,32 @@
 /** A shared tag browser, with canonical names for matching aliases and keyboard navigation. */
 import { interestsGroup } from "../seed/offered.ts";
+import { tags as seedTags } from "../seed/vocabulary.ts";
 import { api, reason, refused, type Suggestion } from "./api.ts";
 import { button, fill, h } from "./dom.ts";
 
 let nextId = 0;
+
+const categories = [
+  { key: "fandom", label: "Fandoms" },
+  { key: "character", label: "Characters" },
+  { key: "pairing", label: "Pairings" },
+  { key: "interest", label: "Interests & activities" },
+] as const;
+type Category = typeof categories[number]["key"];
+
+// Only label names whose place in the team's vocabulary is known. Suggestions
+// and their identities still come from the API, including any additional tags.
+const tagCategories = new Map<string, Category>();
+for (const tag of seedTags) {
+  if (tag.name === interestsGroup) continue;
+  tagCategories.set(tag.name, tag.under?.includes(interestsGroup)
+    ? "interest"
+    : !tag.under?.length
+      ? "fandom"
+      : tag.under.length > 1
+        ? "pairing"
+        : "character");
+}
 
 export function tagPicker({ label, pick, say, selected = () => [] }: {
   label: string;
@@ -20,18 +43,12 @@ export function tagPicker({ label, pick, say, selected = () => [] }: {
     className: "input tag-search",
     type: "search",
     autocomplete: "off",
-    placeholder: "Try Frieren, Fern, sketch swaps, or 葬送…",
+    placeholder: "Try Fern, sketch swaps, or 葬送…",
     maxLength: 64,
   });
   const list = h("ul", { id: `${id}-suggestions`, className: "suggestions tag-suggestions", ariaLabel: "Suggested tags" });
-  const help = h("p", {
-    id: `${id}-help`,
-    className: "help-text tag-picker-help",
-    textContent: "Search a character, pairing, or activity. Other names work too.",
-  });
   input.setAttribute("aria-controls", list.id);
-  input.setAttribute("aria-describedby", help.id);
-  const root = h("div", { className: "tag-picker" }, h("label", { className: "field-label", htmlFor: id, textContent: label }), input, help, list);
+  const root = h("div", { className: "tag-picker" }, h("label", { className: "field-label", htmlFor: id, textContent: label }), input, list);
   let latest = 0;
   let choosing = false;
   let keepClosed = false;
@@ -100,7 +117,12 @@ export function tagPicker({ label, pick, say, selected = () => [] }: {
       // Show each main tag once, preferring its own name when both it and an alias match.
       if (!mainTags.has(tag.main) || tag.tag === tag.main) mainTags.set(tag.main, tag);
     }
-    const suggestions = [...mainTags.values()].slice(0, text ? 12 : 8);
+    const available = [...mainTags.values()];
+    const matches = text ? available : [
+      ...categories.flatMap((category) => available.filter((tag) => tagCategories.get(tag.mainName) === category.key).slice(0, 2)),
+      ...available.filter((tag) => !tagCategories.has(tag.mainName)),
+    ];
+    const suggestions = matches.slice(0, text ? 12 : 8);
     fill(
       list,
       ...suggestions.map((tag) =>
@@ -113,13 +135,14 @@ export function tagPicker({ label, pick, say, selected = () => [] }: {
       suggestions.length === 0
         ? h("li", {
             className: "tag-empty",
-            textContent: text ? "No more matching tags. Try another character, pairing, or activity." : "You’ve selected all available tags.",
+            textContent: "No more matching tags. Try a character, pairing, or activity from Frieren.",
           })
         : null,
     );
     // Build labels as text nodes so tag names cannot become markup.
     options().forEach((option, index) => {
       const tag = suggestions[index]!;
+      const category = categories.find((item) => item.key === tagCategories.get(tag.mainName));
       fill(
         option,
         h(
@@ -128,6 +151,7 @@ export function tagPicker({ label, pick, say, selected = () => [] }: {
           h("span", { className: "tag-option-name", textContent: tag.mainName }),
           text && tag.tag !== tag.main ? h("span", { className: "tag-alias", textContent: `Also known as ${tag.name}` }) : null,
         ),
+        category ? h("span", { className: "tag-category", textContent: category.label }) : null,
         h("span", { ariaHidden: "true", textContent: "+" }),
       );
     });
