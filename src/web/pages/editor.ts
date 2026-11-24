@@ -185,8 +185,11 @@ export const editorPage: Page = (context) => {
     for (const tag of input.tagIds) if (!previous.has(tag as TagID)) await answer(api.bios.tags.add({ bio, tag: tag as TagID }));
     if (before?.card.look.template !== input.templateId) await answer(api.bios.look.template({ bio, template: input.templateId as TemplateID }));
     if (before?.overrides.font !== input.font || before?.overrides.palette !== input.palette) {
-      const reset = await api.bios.look.reset({ bio });
-      if (refused(reset) && codeOf(reset) !== "LOOK_NOT_CUSTOMIZED") throw new Error(reason(reset));
+      // Only a look with its own font or palette can be reset; asking for any other is refused.
+      if (before?.overrides.font != null || before?.overrides.palette != null) {
+        const reset = await api.bios.look.reset({ bio });
+        if (refused(reset) && codeOf(reset) !== "LOOK_NOT_CUSTOMIZED") throw new Error(reason(reset));
+      }
       if (input.font !== null) await answer(api.bios.look.font({ bio, font: input.font }));
       if (input.palette !== null) await answer(api.bios.look.palette({ bio, palette: input.palette }));
     }

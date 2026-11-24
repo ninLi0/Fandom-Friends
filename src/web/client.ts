@@ -13,6 +13,7 @@ import { editorPage } from "./pages/editor.ts";
 import { publicCardPage } from "./pages/public-card.ts";
 import { searchPage } from "./pages/search.ts";
 import { signInPage } from "./pages/sign-in.ts";
+import { siteStyles } from "./site-styles.ts";
 
 /** What every page is given. */
 export interface PageContext {
@@ -39,6 +40,8 @@ const view = document.querySelector<HTMLElement>("#view")!;
 
 // Keep Heyang's editor/card styles together without changing another page's stylesheet.
 document.head.append(h("style", { textContent: editorStyles }));
+// The top bar, the status line, and the sign-in and search pages share one stylesheet, in the editor's look.
+document.head.append(h("style", { textContent: siteStyles }));
 // The pictures on a card have their own small stylesheet, after the card's, and leave the card when they fail to load.
 document.head.append(h("style", { textContent: cardPictureStyles }));
 hideBrokenCardPictures();
@@ -87,8 +90,8 @@ function link(label: string, path: string) {
 function drawBar() {
   fill(
     bar,
-    link("My bios", "/"),
-    link("Find friends", "/search"),
+    h("span", { className: "brand", textContent: "Fandom Friends" }),
+    h("nav", { className: "site-nav", ariaLabel: "Pages" }, link("My bios", "/"), link("Find friends", "/search")),
     username
       ? h(
           "span",
@@ -115,12 +118,32 @@ function drawBar() {
   );
 }
 
+/** The handle in a public bio's address, or undefined for any other address. */
+function handleIn(path: string): string | undefined {
+  const typed = /^\/u\/([^/]+)\/?$/.exec(path)?.[1];
+  if (typed === undefined) return undefined;
+  // An address that is not valid percent-encoding, such as /u/%, names nobody. Keep it as typed so the page can say so.
+  try {
+    return decodeURIComponent(typed);
+  } catch {
+    return typed;
+  }
+}
+
 /** Picks the page for the current address. A public bio needs no sign-in; everything else does. */
 function pageFor(path: string): Page {
-  const handle = /^\/u\/([^/]+)\/?$/.exec(path)?.[1];
-  if (handle !== undefined) return publicCardPage(decodeURIComponent(handle));
+  const handle = handleIn(path);
+  if (handle !== undefined) return publicCardPage(handle);
   if (!username) return signInPage;
   return path === "/search" ? searchPage : editorPage;
+}
+
+/** The browser tab's title for the current address, so it never keeps the title of the page before. */
+function titleFor(path: string): string {
+  const handle = handleIn(path);
+  if (handle !== undefined) return `@${handle.toLowerCase()} · Fandom Friends`;
+  if (!username) return "Fandom Friends";
+  return path === "/search" ? "Find friends · Fandom Friends" : "My bios · Fandom Friends";
 }
 
 function show() {
@@ -128,6 +151,7 @@ function show() {
   cleanups = [];
   mayLeave = () => true;
   say("");
+  document.title = titleFor(location.pathname);
   drawBar();
   fill(view, pageFor(location.pathname)({
     say, go, signedIn, username: username ?? undefined,

@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fandom Friends</title>
     <style>
-      /*
-        A plain working style, so every page can be used and read. The visual design replaces it.
-        The last block is the part to keep in some form: it gives each layout, font, and color scheme
-        name from src/seed/vocabulary.ts a look.
-      */
+      /* The base every page starts from. The editor, the card, and the other pages add their own styles in app.js. */
       body { margin: 0 auto; max-width: 60rem; padding: 1rem; font: 1rem/1.5 system-ui, sans-serif; color: #1c1c1c; background: #fff; }
       header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid #c8c8c8; }
       header .account { margin-left: auto; }
@@ -29,25 +25,14 @@
       .tags li button { padding: 0 0.3rem; border: 0; background: none; color: inherit; }
       .suggestions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
       .tag-picker { margin: 0.75rem 0; } .tag-picker input { display: block; width: min(100%, 22rem); }
-      .bio-list ul { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
-      .editor { display: grid; gap: 0 2rem; grid-template-columns: 1fr; }
-      @media (min-width: 48rem) { .editor { grid-template-columns: 1fr 1fr; } .bio-list, .sharing { grid-column: 1 / -1; } }
       .results { display: grid; gap: 1.5rem; margin-top: 1rem; }
 
-      /* The card and its look. */
+      /* The card still lays itself out with these; its look is in editor-styles.ts. */
       .card { padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #0003; display: grid; gap: 0.5rem 1.5rem; }
       .card h2, .card h3 { margin: 0; }
       .card[data-layout="Two columns"] { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
       .card[data-layout="Two columns"] .card-handle { grid-column: 1 / -1; }
       .card[data-layout="Spotlight"] section:first-of-type { font-size: 1.4rem; }
-      .card[data-font="Serif"] { font-family: Georgia, "Times New Roman", serif; }
-      .card[data-font="Sans"] { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; }
-      .card[data-font="Rounded"] { font-family: ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", sans-serif; }
-      .card[data-font="Mono"] { font-family: ui-monospace, Menlo, Consolas, monospace; }
-      .card[data-palette="Parchment"] { background: #f6efdd; color: #3b2f1e; }
-      .card[data-palette="Midnight"] { background: #14213d; color: #f1f5ff; }
-      .card[data-palette="Sakura"] { background: #fde8ee; color: #5a1f33; }
-      .card[data-palette="Forest"] { background: #e6f1e4; color: #1f3d27; }
     </style>
   </head>
   <body>

@@ -55,7 +55,7 @@ export const searchPage: Page = ({ say, go }) => {
   void search();
   return h(
     "section",
-    {},
+    { className: "search-page" },
     h("h1", { textContent: "Find friends" }),
     h("p", { textContent: "People appear here when they turn on Open to New Friends. Choose tags to narrow the list." }),
     tagPicker({ label: "Filter by tag", pick: add, say }),
