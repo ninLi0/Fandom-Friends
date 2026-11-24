@@ -6,10 +6,22 @@ Fandom Friends helps people in online fandoms introduce themselves with a bio ca
 
 ## The alpha (F4)
 
-- Deployed app: https://fandom-friends.mit-sdg.dev
-- Narrated screen recording: https://youtu.be/t7EpGaloGN4
-- [How to run and change the code](DEVELOPING.md)
-- [Third-party material](THIRD_PARTY_NOTICES.md), including where the pictures on cards come from
+- **Updated designs:** [Concept design](concept-design.md), [Design summary](design-summary.md) and [User journey](user-journey.md), updated from F3.
+- **Updated development plan:** [Development plan](development-plan.md), with progress at the alpha and what remains.
+- **Deployed app:** https://fandom-friends.mit-sdg.dev
+- **Screen recording:** https://youtu.be/t7EpGaloGN4, narrated.
+
+## Run it
+
+You need [Bun](https://bun.sh) 1.4.2, and Docker with Docker Compose to run MongoDB.
+
+```bash
+bun install
+bun run db:up
+bun run dev
+```
+
+Open http://localhost:3000. `bun run test` runs the tests. [DEVELOPING.md](DEVELOPING.md) has the details.
 
 ## Project documents
 
