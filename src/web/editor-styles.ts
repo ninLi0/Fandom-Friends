@@ -39,7 +39,7 @@ body:has(.editor-page) > #bar, body:has(.editor-page) > #status { max-width: 130
 .editor-page .sr-only, .tag-picker .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .page.editor-page { padding-top: 20px; }
 .editor-page .saved-toolbar { margin-bottom: -1px; }
-.editor-page .editor-main > .editor-intro { padding-top: 16px; }
+.editor-page .editor-fields > .editor-intro { padding-top: 16px; }
 .editor-page .editor-public-note { margin: 0 0 12px;
   color: #85612e;
   font-size: 0.875rem; }
@@ -100,12 +100,14 @@ body:has(.editor-page) > #bar, body:has(.editor-page) > #status { max-width: 130
 .editor-page .bio-tab:hover { background: #e6ecfc; color: var(--blue); }
 .editor-page .bio-tab.active { border-color: var(--line); border-bottom-color: #fff; box-shadow: inset 0 2px 0 #6681ee; background: #fff; color: var(--blue); }
 .editor-page .bio-tab:focus-visible { outline-offset: -4px; }
+.editor-page .bio-tab-rename { width: 190px; cursor: text; font-size: 14px; font-weight: 650; }
+.editor-page .bio-tab-rename:focus { outline: 3px solid #809aff; outline-offset: -4px; }
 .editor-page .bio-tab-name { display: block; min-width: 0; max-width: 175px; font-size: 14px; font-weight: 650; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .editor-page .bio-status { display: inline-flex; flex: 0 0 auto; color: var(--muted); font-size: 12px; font-weight: 550; line-height: 1.25; letter-spacing: .015em; }
 .editor-page .bio-tab.published .bio-status { color: #26765c; }
 .editor-page .new-bio-tab { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 5px; height: 32px; margin-bottom: 4px; padding: 0 9px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--blue); font-size: 14px; font-weight: 650; line-height: 1.25; white-space: nowrap; }
 .editor-page .new-bio-tab:hover { background: #eaf0ff; border-color: #dce4fc; }
-.editor-page .saved-toolbar + .editor-intro { border-top-left-radius: 0; }
+.editor-page .saved-toolbar + .editor-fields > .editor-intro { border-top-left-radius: 0; }
 .tag-picker { position: relative; margin-bottom: 20px; }
 .tag-picker > .field-label { display: block; margin-bottom: 8px; }
 .tag-picker > .help-text { margin-top: 8px; }

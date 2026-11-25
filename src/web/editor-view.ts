@@ -18,37 +18,33 @@ export interface EditorViewState {
 }
 
 export function editorView({ draft, catalog, bios, publication, user, dirty, editorQuery }: EditorViewState) {
-function renderBioTabs(activeId: string | null): string {
-  const tabs = bios.map((bio) => {
-    const active = bio.id === activeId;
-    const published = publication?.item === bio.id;
-    return `<button type="button" class="bio-tab${active ? ' active' : ''}${published ? ' published' : ''}"
-      data-action="select-bio" data-id="${e(bio.id)}" aria-pressed="${active}" title="${e(bio.name)}">
-      <span class="bio-tab-name">${e(bio.name)}</span>${published ? '<span class="bio-status">Public</span>' : ''}
-    </button>`;
-  });
-  if (!activeId) tabs.push('<span class="bio-tab active"><span class="bio-tab-name">New bio</span><span class="bio-status">Unsaved</span></span>');
+function bioTab(id: string, name: string, active: boolean, published: boolean, unsaved = false): string {
+  return `<button type="button" class="bio-tab${active ? ' active' : ''}${published ? ' published' : ''}"
+    data-action="select-bio" data-id="${e(id)}" ${unsaved ? 'data-unsaved-tab' : ''} aria-pressed="${active}" aria-keyshortcuts="F2" title="${e(name)} · Double-click to rename">
+    <span class="bio-tab-name">${e(name)}</span>${published || unsaved ? `<span class="bio-status">${published ? 'Public' : 'Unsaved'}</span>` : ''}
+  </button>`;
+}
+
+function renderBioTabs(): string {
+  const tabs = bios.map((bio) => bioTab(bio.id, bio.id === draft.id ? draft.name : bio.name, bio.id === draft.id, publication?.item === bio.id));
+  if (!bios.some((bio) => bio.id === draft.id)) tabs.push(bioTab(draft.id ?? '', draft.name, true, false, true));
   return `<div class="saved-toolbar">
     <div class="bio-tabs" role="group" aria-label="Saved bios">${tabs.join('')}</div>
     <button type="button" class="new-bio-tab" data-action="new-bio"><span aria-hidden="true">+</span> New bio</button>
   </div>`;
 }
 
-function renderEditor(): string {
+function renderFields(): string {
   const current = publication?.item === draft.id;
-  return `<div class="page editor-page">
-    <div class="editor-layout"><div class="editor-main">
-    ${renderBioTabs(draft.id)}
-    <section class="panel editor-intro">
+  return `<section class="panel editor-intro">
     ${current ? '<p class="editor-public-note">Saving updates your public card.</p>' : ''}
-    <div class="field"><label class="field-label" for="bio-name">Saved bio name <span class="help-inline">Only you see this</span></label><input class="input" id="bio-name" data-field="name" value="${e(draft.name)}" maxlength="60" required></div><div class="field"><label class="field-label" for="display-name">Display name</label><input class="input" id="display-name" data-field="displayName" value="${e(draft.displayName)}" maxlength="60" required autocomplete="nickname"></div><div class="field"><label class="field-label" for="bio-note">A little about you <span class="help-inline">Optional</span></label><textarea class="textarea" id="bio-note" data-field="note" rows="3" maxlength="280" placeholder="Currently thinking about…">${e(draft.note)}</textarea><p class="help-text">Skip sensitive details such as your exact age or location. <span id="note-count">${draft.note.length}</span>/280</p></div>
+    <div class="field"><label class="field-label" for="display-name">Display name</label><input class="input" id="display-name" data-field="displayName" value="${e(draft.displayName)}" maxlength="60" required autocomplete="nickname"></div><div class="field"><label class="field-label" for="bio-note">A little about you <span class="help-inline">Optional</span></label><textarea class="textarea" id="bio-note" data-field="note" rows="3" maxlength="280" placeholder="Currently thinking about…">${e(draft.note)}</textarea><p class="help-text">Skip sensitive details such as your exact age or location. <span id="note-count">${draft.note.length}</span>/280</p></div>
     <div class="section-heading"><h2>Your very specific interests</h2><p class="panel-description">Choose the things you’d love to talk about.</p></div><div id="editor-tags">${tagSelection(draft.tagIds, 'editor')}</div><div class="tag-picker"><label class="field-label" for="editor-search">Find a tag</label><input class="input tag-search" id="editor-search" type="search" autocomplete="off" placeholder="Try Fern, sketch swaps, or 葬送…" value="${e(editorQuery)}" aria-controls="editor-suggestions"><div id="editor-suggestions" class="tag-suggestions" aria-label="Suggested tags">${suggestions(editorQuery, draft.tagIds, 'editor')}</div></div></section>
     <section class="panel"><div class="panel-heading"><div><h2>Layout</h2></div><button class="button ghost small" data-action="reset-style">Reset font & color</button></div><p class="field-label">Layout</p><div class="template-options" role="group" aria-label="Card layout">${catalog.templates.filter((item) => ["poster", "columns", "minimal"].includes(item.layout)).map((item) => `<button id="template-${e(item.id)}" class="template-option ${draft!.templateId === item.id ? 'selected' : ''}" data-action="template" data-id="${e(item.id)}" aria-pressed="${draft!.templateId === item.id}"><span class="template-mini ${e(item.layout)}" aria-hidden="true"><span></span><span></span><span></span></span><span class="template-name">${e(item.name)}</span></button>`).join('')}</div><p class="field-label">Font</p><div class="choice-row" role="group" aria-label="Card font">${catalog.fonts.map((font) => `<button id="font-${e(font)}" class="choice-button ${effectiveLook(draft!, catalog).font === font ? 'selected' : ''}" data-action="font" data-id="${e(font)}" aria-pressed="${effectiveLook(draft!, catalog).font === font}">${e(font)}</button>`).join('')}</div><p class="field-label">Color story</p><div class="choice-row" role="group" aria-label="Card palette">${catalog.palettes.map((palette) => `<button id="palette-${e(palette)}" class="choice-button ${effectiveLook(draft!, catalog).palette === palette ? 'selected' : ''}" data-action="palette" data-id="${e(palette)}" aria-pressed="${effectiveLook(draft!, catalog).palette === palette}"><span class="palette-swatch ${e(palette)}" aria-hidden="true"></span>${e(palette)}</button>`).join('')}</div><p class="help-text">Your font and color choices carry over when you switch layouts.</p></section>
     <div class="save-bar">
       <span class="save-status" id="save-status" role="status">${dirty ? 'Unsaved changes' : ''}</span>
       <div class="save-actions">${draft.id ? '<button class="button ghost small" data-action="delete-bio">Delete</button><button class="button secondary" data-action="save-as-new">Save as new</button>' : ''}<button class="button primary" data-action="save" aria-keyshortcuts="Meta+S Control+S">Save bio</button></div>
-    </div></div>
-    <aside class="editor-aside"><div class="preview-label"><span>LIVE PREVIEW</span></div><div id="card-preview" class="preview-stage">${previewCard()}</div><p class="preview-footer">Only one saved bio is public at a time. The rest stay yours.</p><section class="panel publish-panel">${publishingPanel()}</section></aside></div></div>`;
+    </div>`;
 }
 
 function previewCard(): string {
@@ -79,9 +75,14 @@ function suggestions(query: string, selected: string[], context: 'editor' | 'dis
   return matches.length ? matches.slice(0, limit).map((tag) => `<button class="tag-option" data-action="add-tag" data-context="${context}" data-id="${e(tag.id)}"><span><span class="tag-option-name">${e(tag.name)}</span>${text && !tag.name.toLocaleLowerCase().includes(text) ? `<span class="tag-alias">Also known as ${e(tag.aliases.find((name) => name.toLocaleLowerCase().includes(text)) ?? '')}</span>` : ''}</span><span class="tag-category">${e(categories.find((category) => category.id === tag.category)?.label)}</span><span aria-hidden="true">+</span></button>`).join('') : '<p class="tag-empty">No more matching tags. Try a character, pairing, or activity from Frieren.</p>';
 }
 
+  const fields = renderFields();
+  const preview = previewCard();
+  const aside = `<div class="preview-label"><span>LIVE PREVIEW</span></div><div id="card-preview" class="preview-stage">${preview}</div><p class="preview-footer">Only one saved bio is public at a time. The rest stay yours.</p><section class="panel publish-panel">${publishingPanel()}</section>`;
   return {
-    html: renderEditor(),
-    preview: previewCard(),
+    html: `<div class="page editor-page"><div class="editor-layout"><div class="editor-main">${renderBioTabs()}<div class="editor-fields">${fields}</div></div><aside class="editor-aside">${aside}</aside></div></div>`,
+    fields,
+    aside,
+    preview,
     tags: tagSelection(draft.tagIds, "editor"),
     suggestions: suggestions(editorQuery, draft.tagIds, "editor"),
   };

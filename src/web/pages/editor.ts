@@ -3,6 +3,7 @@ import { tags as seedTags } from "../../seed/vocabulary.ts";
 import { interestsGroup } from "../../seed/offered.ts";
 import { api, codeOf, reason, refused, type SavedBio, type Suggestion, type Template } from "../api.ts";
 import type { Page } from "../client.ts";
+import { h } from "../dom.ts";
 import { editorView } from "../editor-view.ts";
 import { effectiveLook, escapeHtml } from "../mvp-card.ts";
 import type { Bio, Catalog, Category, Draft, Publication, Tag, User } from "../mvp-types.ts";
@@ -11,6 +12,7 @@ type BioID = SavedBio["bio"];
 type TagID = Suggestion["tag"];
 type TemplateID = Template["template"];
 type Viewed = Exclude<Awaited<ReturnType<typeof api.bios.view>>, { error: unknown }>;
+const maxBioNameLength = 60;
 
 /** Raise the same readable refusal the alpha API supplies. */
 async function answer<Result extends object>(request: Promise<Result>): Promise<Exclude<Result, { error: unknown }>> {
@@ -33,6 +35,7 @@ export const editorPage: Page = (context) => {
   let busy = false;
   let editorQuery = "";
   let pendingSaveID: string | null = null;
+  let nameInput: HTMLInputElement | undefined;
   let toastTimer: ReturnType<typeof setTimeout> | undefined;
   const toastRegion = document.createElement("div");
   toastRegion.className = "mvp-editor-toast";
@@ -49,10 +52,15 @@ export const editorPage: Page = (context) => {
     toastTimer = setTimeout(() => { toastRegion.innerHTML = ""; }, duration);
   }
 
-  const mayDiscard = () => !dirty || window.confirm("You have unsaved changes. Leave without saving them?");
-  context.beforeLeave(() => !busy && mayDiscard());
+  const hasUnsavedChanges = () => dirty || (nameInput !== undefined && nameInput.value.trim() !== draft?.name);
+  const mayDiscard = () => !hasUnsavedChanges() || window.confirm("You have unsaved changes. Leave without saving them?");
+  context.beforeLeave(() => {
+    if (busy) return false;
+    nameInput?.blur();
+    return mayDiscard();
+  });
   window.addEventListener("beforeunload", (event) => {
-    if (dirty || busy) { event.preventDefault(); event.returnValue = ""; }
+    if (hasUnsavedChanges() || busy) { event.preventDefault(); event.returnValue = ""; }
   }, { signal: lifetime.signal });
 
   function newDraft(): Draft {
@@ -124,10 +132,32 @@ export const editorPage: Page = (context) => {
     return { draft: draft!, catalog, bios, publication, user, dirty, editorQuery };
   }
 
-  function render(focusId?: string) {
+  function showTabName(tab: HTMLButtonElement, name: string) {
+    tab.querySelector(".bio-tab-name")!.textContent = name;
+    tab.title = `${name} · Double-click to rename`;
+  }
+
+  function render(focusId?: string, selectedTab?: HTMLButtonElement) {
     if (!draft || lifetime.signal.aborted) return;
     document.title = "My bios · Fandom Friends";
-    root.innerHTML = editorView(state()).html;
+    const view = editorView(state());
+    if (selectedTab) {
+      // Keep the clicked tab and its label mounted so the second click can land on the same element.
+      const previous = root.querySelector<HTMLButtonElement>('.bio-tab[aria-pressed="true"]');
+      if (previous?.hasAttribute("data-unsaved-tab")) previous.remove();
+      else if (previous) {
+        previous.classList.remove("active");
+        previous.setAttribute("aria-pressed", "false");
+        const saved = bios.find((bio) => bio.id === previous.dataset.id);
+        if (saved) showTabName(previous, saved.name);
+      }
+      selectedTab.classList.add("active");
+      selectedTab.setAttribute("aria-pressed", "true");
+      root.querySelector(".editor-fields")!.innerHTML = view.fields;
+      root.querySelector(".editor-aside")!.innerHTML = view.aside;
+    } else {
+      root.innerHTML = view.html;
+    }
     const tabs = root.querySelector<HTMLElement>(".bio-tabs");
     const active = tabs?.querySelector(".bio-tab.active");
     if (tabs && active) {
@@ -135,6 +165,64 @@ export const editorPage: Page = (context) => {
       if (overflow > 0) tabs.scrollLeft += Math.ceil(overflow);
     }
     if (focusId) root.querySelector<HTMLElement>(`[id="${CSS.escape(focusId)}"]`)?.focus({ preventScroll: true });
+  }
+
+  function selectBio(tab: HTMLButtonElement) {
+    if (tab.getAttribute("aria-pressed") === "true") return true;
+    const bio = bios.find((item) => item.id === tab.dataset.id);
+    nameInput?.blur();
+    if (!bio || !mayDiscard()) return false;
+    draft = fromBio(bio);
+    pendingSaveID = null;
+    dirty = false;
+    editorQuery = "";
+    render(undefined, tab);
+    tab.focus({ preventScroll: true });
+    return true;
+  }
+
+  function renameTab(tab: HTMLButtonElement) {
+    if (!draft || busy || nameInput || tab.getAttribute("aria-pressed") !== "true") return;
+    const editing = draft;
+    const input = h("input", {
+      className: `${tab.className} bio-tab-rename`, type: "text", value: editing.name,
+      maxLength: maxBioNameLength, ariaLabel: "Private bio name",
+    });
+    nameInput = input;
+
+    function finish(apply: boolean, restoreFocus: boolean) {
+      if (nameInput !== input) return;
+      nameInput = undefined;
+      if (!root.contains(input)) return;
+      input.replaceWith(tab);
+      const name = input.value.trim();
+      if (apply && name && name.length <= maxBioNameLength && name !== editing.name) {
+        editing.name = name;
+        dirty = true;
+        showTabName(tab, name);
+        updateEditor();
+      }
+      if (restoreFocus) tab.focus({ preventScroll: true });
+    }
+
+    input.addEventListener("blur", () => finish(true, false));
+    input.addEventListener("input", () => input.setCustomValidity(""));
+    input.addEventListener("keydown", (event) => {
+      if (event.isComposing || event.keyCode === 229) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finish(false, true);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const name = input.value.trim();
+        if (!name) input.setCustomValidity("Enter a bio name.");
+        else if (name.length > maxBioNameLength) input.setCustomValidity(`Use at most ${maxBioNameLength} characters.`);
+        if (input.reportValidity()) finish(true, true);
+      }
+    });
+    tab.replaceWith(input);
+    input.focus();
+    input.select();
   }
 
   function updateEditor(tagsChanged = false) {
@@ -158,12 +246,12 @@ export const editorPage: Page = (context) => {
   async function save(asNew = false): Promise<Bio> {
     if (!draft) throw new Error("Choose a bio first.");
     if (!draft.name.trim() || !draft.displayName.trim()) throw new Error("Give your bio a saved name and a display name first.");
-    if (draft.name.length > 60 || draft.displayName.length > 60 || draft.note.length > 280) throw new Error("Check the length of your bio fields.");
+    if (draft.name.length > maxBioNameLength || draft.displayName.length > 60 || draft.note.length > 280) throw new Error("Check the length of your bio fields.");
     const input = { ...draft, tagIds: [...draft.tagIds] };
     // The alpha's Drafting concept requires unique saved names. A copy keeps a distinct private name.
     if (asNew && !pendingSaveID && bios.some((bio) => bio.name === input.name)) {
       let number = 1;
-      do { const suffix = number === 1 ? " (copy)" : ` (copy ${number})`; input.name = `${draft.name.slice(0, 60 - suffix.length)}${suffix}`; number += 1; }
+      do { const suffix = number === 1 ? " (copy)" : ` (copy ${number})`; input.name = `${draft.name.slice(0, maxBioNameLength - suffix.length)}${suffix}`; number += 1; }
       while (bios.some((bio) => bio.name === input.name));
     }
     let id = pendingSaveID ?? (asNew ? null : input.id);
@@ -211,14 +299,12 @@ export const editorPage: Page = (context) => {
 
   async function action(name: string, id: string) {
     if (!draft) return;
-    if (name === "new-bio" || name === "select-bio") {
-      if (name === "select-bio" && draft.id === id) return;
+    if (name === "new-bio") {
       if (!mayDiscard()) return;
-      draft = name === "new-bio" ? newDraft() : fromBio(bios.find((bio) => bio.id === id)!);
+      draft = newDraft();
       pendingSaveID = null;
       dirty = false; editorQuery = ""; render();
-      if (name === "new-bio") root.querySelector<HTMLInputElement>("#bio-name")?.focus();
-      else root.querySelector<HTMLButtonElement>('.bio-tab[aria-pressed="true"]')?.focus({ preventScroll: true });
+      root.querySelector<HTMLButtonElement>('.bio-tab[aria-pressed="true"]')?.focus({ preventScroll: true });
       return;
     }
     if (name === "add-tag" || name === "remove-tag") {
@@ -260,6 +346,8 @@ export const editorPage: Page = (context) => {
 
   async function run(task: () => Promise<void>, lock = true) {
     if (busy) return;
+    // Some browsers leave a text input focused when the user clicks a button.
+    nameInput?.blur();
     busy = true;
     if (lock) { root.inert = true; root.setAttribute("aria-busy", "true"); }
     try { await task(); }
@@ -284,7 +372,26 @@ export const editorPage: Page = (context) => {
     event.preventDefault();
     const name = control.dataset.action ?? "";
     if (name === "retry") { void run(loadAll); return; }
+    if (name === "select-bio" && control instanceof HTMLButtonElement) {
+      if (event.detail < 2) selectBio(control);
+      return;
+    }
     void run(() => action(name, control.dataset.id ?? ""), ["save", "save-as-new", "publish", "unpublish", "delete-bio", "copy-link"].includes(name));
+  });
+
+  root.addEventListener("dblclick", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const tab = event.target.closest<HTMLButtonElement>("button.bio-tab");
+    if (tab) renameTab(tab);
+  });
+
+  root.addEventListener("keydown", (event) => {
+    if (event.key !== "F2" || event.isComposing || busy) return;
+    const tab = event.target;
+    if (tab instanceof HTMLButtonElement && tab.classList.contains("bio-tab")) {
+      event.preventDefault();
+      if (selectBio(tab)) renameTab(tab);
+    }
   });
 
   root.addEventListener("input", (event) => {
@@ -293,7 +400,7 @@ export const editorPage: Page = (context) => {
     if (input.id === "editor-search") {
       editorQuery = input.value; root.querySelector("#editor-suggestions")!.innerHTML = editorView(state()).suggestions; return;
     }
-    if (input.dataset.field === "name" || input.dataset.field === "displayName" || input.dataset.field === "note") {
+    if (input.dataset.field === "displayName" || input.dataset.field === "note") {
       draft[input.dataset.field] = input.value; dirty = true; updateEditor();
     }
   });
@@ -322,7 +429,10 @@ export const editorPage: Page = (context) => {
   window.addEventListener("keydown", (event) => {
     if (event.isComposing || event.keyCode === 229) return;
     if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "s") {
-      event.preventDefault(); if (!event.repeat && !busy) root.querySelector<HTMLButtonElement>('[data-action="save"]')?.click();
+      event.preventDefault();
+      if (!event.repeat && !busy) {
+        root.querySelector<HTMLButtonElement>('[data-action="save"]')?.click();
+      }
     } else if (event.key === "ArrowDown" && event.target instanceof HTMLInputElement && event.target.id === "editor-search") {
       event.preventDefault(); root.querySelector<HTMLElement>("#editor-suggestions button")?.focus();
     }
